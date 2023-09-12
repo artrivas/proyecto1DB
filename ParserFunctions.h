@@ -5,5 +5,5 @@
 #ifndef UNTITLED_PARSERFUNCTIONS_H
 #define UNTITLED_PARSERFUNCTIONS_H
 #include<iostream>
-void CsvToBin(const std::string & csvfile,const std::string & binfile);
+vector<Record> CsvToBin(const std::string & csvfile);
 #endif //UNTITLED_PARSERFUNCTIONS_H

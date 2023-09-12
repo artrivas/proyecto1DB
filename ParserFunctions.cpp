@@ -6,11 +6,13 @@
 #include<sstream>
 #include <cstring>
 #include "Record.h"
+#include<vector>
 using namespace std;
 
-void CsvToBin(const string & csvfile,const string & binfile){
+vector<Record> CsvToBin(const string & csvfile){
     ifstream readfile(csvfile);
     string inputline;
+    vector<Record> ans;
     while(getline(readfile,inputline)){
         stringstream line(inputline);
         Record data;
@@ -71,11 +73,9 @@ void CsvToBin(const string & csvfile,const string & binfile){
         getline(line,temp,',');
         data.draft_number = (temp.empty() ? -1:stoi(temp));
 
-        data.print_vals();
-        ofstream writefile(binfile,ios::binary | ios::app);
-        writefile.write((char*) &data,sizeof(Record));
-        writefile.close();
+        ans.push_back(data);
         inputline = "";
     }
     readfile.close();
+    return ans;
 }
