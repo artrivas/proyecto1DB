@@ -48,7 +48,7 @@ public:
         setup_files();
         ofstream file(this->heapfilename,ios::binary | ios::app);
         file.write((char *) &record, sizeof(Record));
-        long nodepos = file.tellp()/sizeof(Record);
+        unsigned long nodepos = file.tellp()/sizeof(Record);
         file.close();
         add(nodepos);
     }
@@ -67,15 +67,57 @@ public:
         return ans;
     }
 
+    vector<Record> rangeSearch(KeyType & bkey, KeyType & ekey){
+        AVLNode<KeyType> root_node;
+        readfile.seekg((pos_root-1)*sizeof(AVLNode<KeyType>));
+        readfile.read((char *) &root_node,sizeof(AVLNode<KeyType>));
+        vector<AVLNode<KeyType>> ans;
+        _rangeSearch(root_node,bkey,ekey,ans);
+        ifstream file(this->heapfilename,ios::binary);
+        vector<Record> arr;
+        for(auto i :ans){
+            file.seekg((i.file_position-1)*sizeof(Record));
+            Record a;
+            file.read((char*) &a,sizeof(Record));
+            arr.push_back(a);
+        }
+        return arr;
+    }
 private:
 
+    void _rangeSearch(AVLNode<KeyType> cmp_node, KeyType & bkey, KeyType & ekey,vector<AVLNode<KeyType>> & ans){
+        if(cmp_node.file_position == -1)
+            return;
+        int result1 = strcmp(bkey,cmp_node.key); //bkey <= cmp.key
+        int result2 = strcmp(cmp_node.key,ekey); //cmp.key <= ekey
+        if(result1<=0){
+            AVLNode<KeyType> new_cmp_node;
+            readfile.seekg((cmp_node.left-1)*sizeof(AVLNode<KeyType>));
+            readfile.read((char*) &new_cmp_node,sizeof(AVLNode<KeyType>));
+            _rangeSearch(new_cmp_node,bkey,ekey,ans);
+        }
+        if(result1 <= 0 && result2 <=0){
+            //Iprimir;
+            ans.push_back(cmp_node);
+            AVLNode<KeyType> cnt = get_node(cmp_node.list_pointer);
+            while(cnt.file_position != -1){
+                ans.push_back(cnt);
+                cnt = get_node(cnt.list_pointer);
+            }
+        }
+        if(result2 <=0){
+            AVLNode<KeyType> new_cmp_node;
+            readfile.seekg((cmp_node.right-1)* sizeof(AVLNode<KeyType>));
+            readfile.read((char*)&new_cmp_node,sizeof(AVLNode<KeyType>));
+            _rangeSearch(new_cmp_node,bkey,ekey,ans);
+        }
+    }
     vector<AVLNode<KeyType>> find(long pos_node, KeyType & key){
         if(pos_node<0) return vector<AVLNode<KeyType>>{};
         readfile.seekg((pos_node-1)*sizeof(AVLNode<KeyType>));
         AVLNode<KeyType> cmp_node;
         readfile.read((char*) &cmp_node,sizeof(AVLNode<KeyType>));
         int result = strcmp(key,cmp_node.key);
-        cout<< "llave: " << cmp_node.key << ' ' << key << result << ' ' << pos_node << ' ' << cmp_node.left << '\n';
         if(result > 0){
             return find(cmp_node.right,key);
         }else if(result <0){
@@ -91,7 +133,6 @@ private:
             }
             return ans;
         }
-        return vector<AVLNode<KeyType>>{};
     }
 
     void left_rotation(AVLNode<KeyType> & node, long position){
@@ -148,10 +189,11 @@ private:
     }
 
     AVLNode<KeyType> get_node(long posnode){
+        setup_files(); //Porque es necesario (?)
         AVLNode<KeyType> node;
         if(posnode == -1) return node;
         readfile.seekg((posnode-1)*sizeof(node));
-        readfile.read((char*) & node, sizeof(node));
+        readfile.read((char*) & node, sizeof(AVLNode<KeyType>));
         return node;
     }
 
