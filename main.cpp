@@ -10,11 +10,6 @@
 #include "./exthash/utils/numToBin.hpp"
 
 int maindd() {
-    int i;
-    for (i = 0; i < 5; ++i) {
-        std::cout << "a" << std::endl;
-    }
-    std::cout << i << std::endl; // 5
     return 0;
 
 }
