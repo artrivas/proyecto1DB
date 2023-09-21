@@ -33,7 +33,7 @@ private:
     
     void find_node_pos(std::fstream& file, std::string& binary, int& pos_node, int& prev_pos_node, int& depth);
     TR* find_record(TK key, int& pos_bucket, TR& record, int& pos_record, bool& found);
-    void add_record_rehashing(std::fstream& indexFile, std::fstream& dataFile, std::fstream& indexFileFL, std::fstream& dataFileFL, TR record); 
+    void add_record_rehashing(std::fstream& indexFile, std::fstream& dataFile, TR record); 
     bool is_empty(std::fstream& file);
     int size(std::fstream& file);
     int capacity(std::fstream& file);
@@ -146,13 +146,6 @@ TR* ExtHashFile<TR, TK>::search(TK key) {
     int pos_record{};
     bool found {false};
     find_record(key, pos_bucket, record, pos_record, found);
-    std::cout << "##############################\n";
-    std::cout << "key " << key << std::endl;
-    std::cout << "pos_bucket " << pos_bucket << std::endl;
-    std::cout << "pos_record " <<pos_record << std::endl;
-    std::cout << "found " << found << std::endl;
-    record.print();
-    std::cout << "##############################\n";
     if (found) 
         return &record;
     return nullptr;
@@ -228,48 +221,35 @@ bool ExtHashFile<TR, TK>::add(TR record) {
             IndexEntry n_right;
 
             Bucket<TR> new_bucket_right = bucket.split(); 
-            std::vector<int> pos_nodes_add;
 
             if (bit_sequence.empty()) {
                 node.left = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(node.left);
                 count_index++;
                 node.right = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(node.right);
                 count_index++;
                 n_left.pos_bucket = node.pos_bucket;
                 n_right.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count;
                 metadata.count++;
                 node.pos_bucket = -1;
             } else {
-                if (bit_sequence[0] == '0') {
+                if (bit_sequence[0] == '0') 
                     node.left = get_pos_add_node(indexFileFL); // count_index;
-                    pos_nodes_add.push_back(node.left);
-                } else {
+                else 
                     node.right = get_pos_add_node(indexFileFL); // count_index;
-                    pos_nodes_add.push_back(node.right);
-                }
                 count_index++;
 
                 int i;
                 for (i = 0; i < nodes.size()-1; ++i) {
-                    if (bit_sequence[i + 1] == '0') {
+                    if (bit_sequence[i + 1] == '0') 
                         nodes[i].left = get_pos_add_node(indexFileFL); // count_index;
-                        pos_nodes_add.push_back(nodes[i].left);
-                    }
-                    else {
+                    else 
                         nodes[i].right = get_pos_add_node(indexFileFL); // count_index;
-                        pos_nodes_add.push_back(nodes[i].right);
-                    }
                     count_index++;
                 }
                 nodes[i].left = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(nodes[i].left);
                 count_index++;
                 nodes[i].right = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(nodes[i].right);
                 count_index++;
-                
                 n_left.pos_bucket = node.pos_bucket;
                 n_right.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count;
                 metadata.count++;
@@ -293,34 +273,22 @@ bool ExtHashFile<TR, TK>::add(TR record) {
             }
             
             // write new bucket
-            dataFile.seekp(sizeof(metadata) + (n_right.pos_bucket * new_bucket_right.size_of()), std::ios::beg);
+            dataFile.seekp(0, std::ios::end);
             new_bucket_right.write(dataFile);  
             
             // write node updated
-            indexFile.seekp(pos_node * sizeof(IndexEntry) + sizeof(count_index), std::ios::beg);
+            indexFile.seekp(pos_node*sizeof(IndexEntry) + sizeof(count_index), std::ios::beg);
             indexFile.write((char*) &node, sizeof(IndexEntry));
             
             // write news nodes
-            if (!bit_sequence.empty()) {
-                int i = 0;
-                for (i = 0; i < nodes.size() - 1; ++i) {
-                    indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
-                    indexFile.write((char*) &nodes[i], sizeof(IndexEntry));
-                }
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
-                i++;
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_right, sizeof(IndexEntry));
-            } else {
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[0] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
-
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[1] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_right, sizeof(IndexEntry)); 
+            indexFile.seekp(0, std::ios::end);
+            for (int i = 0; i < nodes.size(); ++i) {
+                indexFile.write((char*) &nodes[i], sizeof(IndexEntry));
             }
+            indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
+            indexFile.write((char*) &n_right, sizeof(IndexEntry)); 
 
-            add_record_rehashing(indexFile, dataFile, indexFileFL, dataFileFL, record); 
+            add_record_rehashing(indexFile, dataFile, record); 
         }
         else {
             bucket.add(dataFile, node.pos_bucket, record);
@@ -328,42 +296,33 @@ bool ExtHashFile<TR, TK>::add(TR record) {
     } else {
         indexFile.seekg((prev_pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
-        
-        std::cout << "....................................1\n";
-        node.print(); // -1 2
-        std::cout << "....................................1\n";
+        std::cout "....................................1\n";
+        node.print();
+        std::cout "....................................1\n";
         Bucket<TR> new_buck(metadata.block_factor);
-        std::cout << "....................................2\n";
+        std::cout "....................................2\n";
         new_buck.print();
-        std::cout << "....................................2\n";
-        std::cout << "....................................3\n";
+        std::cout "....................................2\n";
+        std::cout "....................................3\n";
         new_buck.metadata.local_depth = depth + 1;
         new_buck.print();
-        std::cout << "....................................3\n";
+        std::cout "....................................3\n";
         IndexEntry new_node_e;
 
         new_buck.add(record);
 
-        int pos_add = 0;
+
         if (node.left == -1) {
             node.pos_bucket = -1;
             node.left = get_pos_add_node(indexFileFL); // count_index;
-            pos_add = node.left;
         } else {
             node.pos_bucket = -1;
             node.right = get_pos_add_node(indexFileFL); // count_index;
-            pos_add = node.right;
         }
         count_index++;
 
         new_node_e.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count; 
         metadata.count++;
-
-        std::cout << "+++++++++++++++++++++++++++++++++\n";
-        std::cout << pos_add << " -----\n";
-        node.print();
-        new_node_e.print();
-        std::cout << "+++++++++++++++++++++++++++++++++\n";
 
         // write bucket count and index count
         dataFile.seekp(0, std::ios::beg);
@@ -376,11 +335,13 @@ bool ExtHashFile<TR, TK>::add(TR record) {
         indexFile.write((char*) &node, sizeof(IndexEntry));
 
         // write new bucket
-        dataFile.seekp(sizeof(metadata) + (new_node_e.pos_bucket * new_buck.size_of()), std::ios::beg);
+        int pos = get_pos_add_bucket(dataFileFL);
+        dataFile.seekp(sizeof(metadata) + (pos * new_buck.size_of()), std::ios::end);
         new_buck.write(dataFile);
 
         // write new node
-        indexFile.seekp(sizeof(int) + (pos_add * sizeof(new_node_e)), std::ios::beg);
+        pos = get_pos_add_node(dataFileFL);
+        indexFile.seekp(0, std::ios::end);
         indexFile.write((char*) &new_node_e, sizeof(IndexEntry));
     }
 
@@ -426,13 +387,6 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
         Bucket<TR> bucket(metadata.block_factor);
         dataFile.seekg((pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
         bucket.read(dataFile);
-
-        std::cout << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n";
-        for (auto &p: path) {
-            std::cout << "--> " << p << std::endl;
-        }
-        std::cout << "bin::: " << bin << std::endl;
-        std::cout << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n";
 
         if (bucket.metadata.count == 1) {
             IndexEntry node;
@@ -558,22 +512,12 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
     int depth{};
 
     find_node_pos(indexFile, binary, pos_node, prev_pos_node, depth);
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
-    std::cout << "binary " << binary << std::endl;
-    std::cout << "pos_node " << pos_node << std::endl;
-    std::cout << "prev_pos_node " << prev_pos_node << std::endl;
-    std::cout << "depth " << depth << std::endl;
-    //record.print();
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
 
     if (pos_node == -1) {
         indexFile.seekg((prev_pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
 
-            std::cout << "no etra1\n";
         if (node.is_leaf()) {
-            node.print();
-            std::cout << "no etra2\n";
             Bucket<TR> bucket(metadata.block_factor);
             dataFile.seekg((node.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
             bucket.read(dataFile);
@@ -598,7 +542,6 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
             //return {};
         }
     } else {
-         std::cout << "no etra3\n";
         indexFile.seekg((pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
 
@@ -628,7 +571,7 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
 }
 
 template <typename TR, typename TK>
-void ExtHashFile<TR, TK>::add_record_rehashing(std::fstream& indexFile, std::fstream& dataFile, std::fstream& indexFileFL, std::fstream& dataFileFL, TR record) {
+void ExtHashFile<TR, TK>::add_record_rehashing(std::fstream& indexFile, std::fstream& dataFile, TR record) {
     // rehashing
     int num = hasher(record.get_key()) % int(std::pow(2, metadata.global_depth));
     std::string binary = numToBin(num, metadata.global_depth);
@@ -659,20 +602,17 @@ void ExtHashFile<TR, TK>::add_record_rehashing(std::fstream& indexFile, std::fst
         IndexEntry new_node_e;
 
         new_buck.add(record);
-        
-        int pos_add = 0;
+
         if (node_e.left == -1) {
             node_e.pos_bucket = -1;
-            node_e.left = get_pos_add_node(indexFileFL);
-            pos_add = node_e.left;
+            node_e.left = count_index;
         } else {
             node_e.pos_bucket = -1;
-            node_e.right = get_pos_add_node(indexFileFL);
-            pos_add = node_e.right;
+            node_e.right = count_index;
         }
         count_index++;
 
-        new_node_e.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count;
+        new_node_e.pos_bucket = metadata.count;
         metadata.count++;
         
         // write bucket count and index count
@@ -686,11 +626,11 @@ void ExtHashFile<TR, TK>::add_record_rehashing(std::fstream& indexFile, std::fst
         indexFile.write((char*) &node_e, sizeof(IndexEntry));
 
         // write new bucket
-        dataFile.seekp(sizeof(metadata) + (new_node_e.pos_bucket * new_buck.size_of()), std::ios::beg);
+        dataFile.seekp(0, std::ios::end);
         new_buck.write(dataFile);
 
         // write new node
-        indexFile.seekp(sizeof(int) + (pos_add * sizeof(new_node_e)), std::ios::beg);
+        indexFile.seekp(0, std::ios::end);
         indexFile.write((char*) &new_node_e, sizeof(IndexEntry));
     }
 }
@@ -773,7 +713,7 @@ int ExtHashFile<TR, TK>::get_pos_add_bucket(std::fstream& dataFileFL) {
         dataFileFL.seekp(0, std::ios::beg);
         dataFileFL.write((char*) &new_pos_header, sizeof(new_pos_header));    
         
-        return pos_header;
+        return new_pos_header;
     }
 }
 
@@ -802,7 +742,7 @@ int ExtHashFile<TR, TK>::get_pos_add_node(std::fstream& indexFileFL) {
         indexFileFL.seekp(0, std::ios::beg);
         indexFileFL.write((char*) &new_pos_header, sizeof(new_pos_header));    
         
-        return pos_header;
+        return new_pos_header;
     }
 }
 

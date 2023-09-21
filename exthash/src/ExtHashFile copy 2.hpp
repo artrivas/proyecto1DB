@@ -146,13 +146,6 @@ TR* ExtHashFile<TR, TK>::search(TK key) {
     int pos_record{};
     bool found {false};
     find_record(key, pos_bucket, record, pos_record, found);
-    std::cout << "##############################\n";
-    std::cout << "key " << key << std::endl;
-    std::cout << "pos_bucket " << pos_bucket << std::endl;
-    std::cout << "pos_record " <<pos_record << std::endl;
-    std::cout << "found " << found << std::endl;
-    record.print();
-    std::cout << "##############################\n";
     if (found) 
         return &record;
     return nullptr;
@@ -317,7 +310,7 @@ bool ExtHashFile<TR, TK>::add(TR record) {
                 indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
 
                 indexFile.seekp(sizeof(int) + (pos_nodes_add[1] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_right, sizeof(IndexEntry)); 
+                indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
             }
 
             add_record_rehashing(indexFile, dataFile, indexFileFL, dataFileFL, record); 
@@ -352,7 +345,7 @@ bool ExtHashFile<TR, TK>::add(TR record) {
         } else {
             node.pos_bucket = -1;
             node.right = get_pos_add_node(indexFileFL); // count_index;
-            pos_add = node.right;
+            pos_add = node.left;
         }
         count_index++;
 
@@ -558,22 +551,12 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
     int depth{};
 
     find_node_pos(indexFile, binary, pos_node, prev_pos_node, depth);
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
-    std::cout << "binary " << binary << std::endl;
-    std::cout << "pos_node " << pos_node << std::endl;
-    std::cout << "prev_pos_node " << prev_pos_node << std::endl;
-    std::cout << "depth " << depth << std::endl;
-    //record.print();
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
 
     if (pos_node == -1) {
         indexFile.seekg((prev_pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
 
-            std::cout << "no etra1\n";
         if (node.is_leaf()) {
-            node.print();
-            std::cout << "no etra2\n";
             Bucket<TR> bucket(metadata.block_factor);
             dataFile.seekg((node.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
             bucket.read(dataFile);
@@ -598,7 +581,6 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
             //return {};
         }
     } else {
-         std::cout << "no etra3\n";
         indexFile.seekg((pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
 

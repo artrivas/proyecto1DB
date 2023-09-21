@@ -9,10 +9,6 @@
 #include "./exthash/utils/hasher.hpp"
 #include "./exthash/utils/numToBin.hpp"
 
-int maindd() {
-    return 0;
-
-}
 
 int maiddn() {
     int d = 6;
@@ -56,22 +52,22 @@ int main() {
     ExtHashFile<Player, int> e("players", "id");
     e.print();
     //std::cout << "================================================\n";
-    Player p1(480, "AAA", "Rpdasd", "Guard", "6'5\"", 220, "1990-05-15", "USA", "University of XYZ", 2010, 1, 1);    
+    //Player p1(480, "AAA", "Rpdasd", "Guard", "6'5\"", 220, "1990-05-15", "USA", "University of XYZ", 2010, 1, 1);    
     //Player p2(86, "BBB", "Rpdasd", "Guard", "6'5\"", 220, "1990-05-15", "USA", "University of XYZ", 2010, 1, 1);    
     //Player p3(48, "CCC", "Rpdasd", "Guard", "6'5\"", 220, "1990-05-15", "USA", "University of XYZ", 2010, 1, 1);    
-    e.add(p1);
+    //e.add(p1);
     //e.add(p2);
     //e.add(p3);
     std::cout << "================================================\n";
-    //auto ptr = e.search(480);
-    //e.search(480);
+    auto ptr = e.search(480);
+    //e.search(86);
     //e.add(p1);
-    //e.remove(86);
+    //e.remove(48);
     e.print();
 
-    //if (ptr != nullptr)
-    //    ptr->print();
-    //else std::cout << "es un puntero\n";
+    if (ptr != nullptr)
+        ptr->print();
+    else std::cout << "es un puntero\n";
     //e.print();
     //auto r = e.search(480);
     //Player* p = &r;
