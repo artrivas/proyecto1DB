@@ -17,4 +17,19 @@ Nuestras estructuras tendran las siguientes funciones :
 * Búsqueda de rango: dado un rango de claves, devuelve todos los registros cuyas claves estén dentro del rango.
 * Agregar: agrega un nuevo registro al archivo.
 * Eliminar: eliminar un registro del archivo.
+## DATOS 
+Usamos una data de Kaggle que contiene los siguientes atributos:
+| Atributo | Significado |
+|-----------|-----------|
+| playerid    | Id del jugador   |
+|   fname  | Nombres    |
+| lname    | Apellidos    |
+| position    | Posicion de juego   |
+| height     | Altura    |
+| weight    | Peso    |
+| birthday   | Cumpleaños    |
+| Country    | Pais   |
+| School    | Colegio    |
+| Draft year    | Año de fichaje    |
+
 
