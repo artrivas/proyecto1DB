@@ -1,4 +1,6 @@
 # BASE DE DATOS 2 - PROYECTO 1
+![image](https://github.com/artrivas/proyecto1DB/assets/87825436/b57c62e9-cc40-46d5-b31e-83a93daf1089)
+
 ## INTEGRANTES:
 
 * Dimael Rivas
