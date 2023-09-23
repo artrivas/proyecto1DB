@@ -18,7 +18,7 @@ Nuestras estructuras tendran las siguientes funciones :
 * Agregar: agrega un nuevo registro al archivo.
 * Eliminar: eliminar un registro del archivo.
 ## DATOS 
-Usamos una data de Kaggle que contiene los siguientes atributos:
+Datos sobre todos los jugadores de la NBA activos durante la temporada 2022-2023 obtenidos en [Kaggle](https://www.kaggle.com/datasets/szymonjwiak/nba-active-players-data-images)  que contiene los siguientes atributos:
 | Atributo | Significado |
 |-----------|-----------|
 | playerid    | Id del jugador   |
