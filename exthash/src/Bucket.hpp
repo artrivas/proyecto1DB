@@ -196,7 +196,7 @@ void Bucket<TR>::print() {
         std::cout << "\n";
         records[i].print();
     }
-    std::cout << "------------------------------\n";
+    std::cout << "\n------------------------------\n";
 }
 
 template <typename TR>
@@ -212,8 +212,6 @@ template <typename TR>
 int Bucket<TR>::size_of() {
     return (sizeof(int)*(5 + metadata.capacity)) + (sizeof(TR)*metadata.capacity);
 }
-
-// ----------------------------------------------------------------
 
 template <typename TR>
 void Bucket<TR>::set_next_empty() {

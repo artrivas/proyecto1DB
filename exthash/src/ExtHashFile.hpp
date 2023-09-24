@@ -7,6 +7,7 @@
 #include <vector>
 #include "Bucket.hpp"
 #include "IndexEntry.hpp"
+
 #include "./../../utils/getPageSize.hpp"
 #include "./../utils/numToBin.hpp"
 #include "./../utils/hasher.hpp"
@@ -34,6 +35,7 @@ private:
     void find_node_pos(std::fstream& file, std::string& binary, int& pos_node, int& prev_pos_node, int& depth);
     TR* find_record(TK key, int& pos_bucket, TR& record, int& pos_record, bool& found);
     void add_record_rehashing(std::fstream& indexFile, std::fstream& dataFile, std::fstream& indexFileFL, std::fstream& dataFileFL, TR record); 
+    void add_record(std::fstream& indexFile, std::fstream& dataFile, std::fstream& indexFileFL, std::fstream& dataFileFL, Bucket<TR>& bbase, IndexEntry& node, int pos_node, TR record); 
     bool is_empty(std::fstream& file);
     int size(std::fstream& file);
     int capacity(std::fstream& file);
@@ -79,9 +81,9 @@ ExtHashFile<TR, TK>::ExtHashFile(std::string filename, std::string index_field) 
         
         metadata.global_depth = 1; // default
         
+        // metadata.block_factor = 2;
         // 5 metadata | records and next_del 
-        // metadata.block_factor = (getPageSize() - sizeof(int)*5) / (sizeof(TR)+sizeof(int));
-        metadata.block_factor = 2;
+        metadata.block_factor = (getPageSize() - sizeof(int)*5) / (sizeof(TR)+sizeof(int));
 
         metadata.count = 2; // default
 
@@ -146,13 +148,6 @@ TR* ExtHashFile<TR, TK>::search(TK key) {
     int pos_record{};
     bool found {false};
     find_record(key, pos_bucket, record, pos_record, found);
-    std::cout << "##############################\n";
-    std::cout << "key " << key << std::endl;
-    std::cout << "pos_bucket " << pos_bucket << std::endl;
-    std::cout << "pos_record " <<pos_record << std::endl;
-    std::cout << "found " << found << std::endl;
-    record.print();
-    std::cout << "##############################\n";
     if (found) 
         return &record;
     return nullptr;
@@ -185,6 +180,11 @@ bool ExtHashFile<TR, TK>::add(TR record) {
         return false;
     }
 
+    if (search(record.get_key()) != nullptr) {
+        std::cout << "The record is already indexed, records with the same key are not allowed\n";
+        return false;
+    }
+
     IndexEntry node;
     int prev_pos_node{};
     int pos_node{}; 
@@ -193,177 +193,52 @@ bool ExtHashFile<TR, TK>::add(TR record) {
 
     find_node_pos(indexFile, binary, pos_node, prev_pos_node, depth);
 
-    //
-    std::cout << "{{{{{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}}}}\n";
-    std::cout << "global depth" << metadata.global_depth << std::endl;
-    std::cout << "binary" << binary << std::endl;
-    std::cout << "pos_node" << pos_node << std::endl;
-    std::cout << "prev_pos_node" << prev_pos_node << std::endl;
-    std::cout << "depth" << depth << std::endl;
-    std::cout << "{{{{{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}}}}\n";
-    //
     if (pos_node != -1) {
         indexFile.seekg((pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
+
         Bucket<TR> bucket(metadata.block_factor);
         dataFile.seekg((node.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
         bucket.read(dataFile);
-
-        if (bucket.is_full()) {
-            std::vector<IndexEntry> nodes;
-            std::string bit_sequence = "";
-            while (!bucket.evaluate_split()) { 
-                if (metadata.global_depth == bucket.metadata.local_depth) 
-                    metadata.global_depth++;
-                bucket.metadata.local_depth++;
-                IndexEntry new_node;
-                nodes.emplace_back(new_node);
-                bit_sequence += bucket.get_common_bit(); 
-            };
-            if (metadata.global_depth == bucket.metadata.local_depth) 
-                metadata.global_depth++;
-            bucket.metadata.local_depth++;
-
-            IndexEntry n_left;
-            IndexEntry n_right;
-
-            Bucket<TR> new_bucket_right = bucket.split(); 
-            std::vector<int> pos_nodes_add;
-
-            if (bit_sequence.empty()) {
-                node.left = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(node.left);
-                count_index++;
-                node.right = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(node.right);
-                count_index++;
-                n_left.pos_bucket = node.pos_bucket;
-                n_right.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count;
-                metadata.count++;
-                node.pos_bucket = -1;
-            } else {
-                if (bit_sequence[0] == '0') {
-                    node.left = get_pos_add_node(indexFileFL); // count_index;
-                    pos_nodes_add.push_back(node.left);
-                } else {
-                    node.right = get_pos_add_node(indexFileFL); // count_index;
-                    pos_nodes_add.push_back(node.right);
-                }
-                count_index++;
-
-                int i;
-                for (i = 0; i < nodes.size()-1; ++i) {
-                    if (bit_sequence[i + 1] == '0') {
-                        nodes[i].left = get_pos_add_node(indexFileFL); // count_index;
-                        pos_nodes_add.push_back(nodes[i].left);
-                    }
-                    else {
-                        nodes[i].right = get_pos_add_node(indexFileFL); // count_index;
-                        pos_nodes_add.push_back(nodes[i].right);
-                    }
-                    count_index++;
-                }
-                nodes[i].left = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(nodes[i].left);
-                count_index++;
-                nodes[i].right = get_pos_add_node(indexFileFL); // count_index;
-                pos_nodes_add.push_back(nodes[i].right);
-                count_index++;
-                
-                n_left.pos_bucket = node.pos_bucket;
-                n_right.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count;
-                metadata.count++;
-                node.pos_bucket = -1;
-            }
-
-            // write bucket count and global_depth update
-            dataFile.seekp(0, std::ios::beg);
-            dataFile.write((char*) &metadata.count, sizeof(int)); 
-            dataFile.write((char*) &metadata.global_depth, sizeof(int)); 
-
-            // write node count update
-            indexFile.seekp(0, std::ios::beg);
-            indexFile.write((char*) &count_index, sizeof(int)); 
-
-            // update bucket
-            dataFile.seekp((n_left.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
-            dataFile.write((char*) &bucket.metadata, sizeof(bucket.metadata));
-            for (int i = 0; i < bucket.metadata.capacity; ++i) {
-                dataFile.write((char*) &bucket.next_del[i], sizeof(int));   
-            }
-            
-            // write new bucket
-            dataFile.seekp(sizeof(metadata) + (n_right.pos_bucket * new_bucket_right.size_of()), std::ios::beg);
-            new_bucket_right.write(dataFile);  
-            
-            // write node updated
-            indexFile.seekp(pos_node * sizeof(IndexEntry) + sizeof(count_index), std::ios::beg);
-            indexFile.write((char*) &node, sizeof(IndexEntry));
-            
-            // write news nodes
-            if (!bit_sequence.empty()) {
-                int i = 0;
-                for (i = 0; i < nodes.size() - 1; ++i) {
-                    indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
-                    indexFile.write((char*) &nodes[i], sizeof(IndexEntry));
-                }
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
-                i++;
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_right, sizeof(IndexEntry));
-            } else {
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[0] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
-
-                indexFile.seekp(sizeof(int) + (pos_nodes_add[1] * sizeof(IndexEntry)), std::ios::beg);
-                indexFile.write((char*) &n_right, sizeof(IndexEntry)); 
-            }
-
-            add_record_rehashing(indexFile, dataFile, indexFileFL, dataFileFL, record); 
-        }
-        else {
-            bucket.add(dataFile, node.pos_bucket, record);
-        }
+        add_record(indexFile, dataFile, indexFileFL, dataFileFL, bucket, node, pos_node, record);
+    
     } else {
         indexFile.seekg((prev_pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
         
-        std::cout << "....................................1\n";
-        node.print(); // -1 2
-        std::cout << "....................................1\n";
-        Bucket<TR> new_buck(metadata.block_factor);
-        std::cout << "....................................2\n";
-        new_buck.print();
-        std::cout << "....................................2\n";
-        std::cout << "....................................3\n";
-        new_buck.metadata.local_depth = depth + 1;
-        new_buck.print();
-        std::cout << "....................................3\n";
-        IndexEntry new_node_e;
+        if (node.is_leaf()) {
+            Bucket<TR> bucket(metadata.block_factor);
+            dataFile.seekg((node.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
+            bucket.read(dataFile);
 
+            add_record(indexFile, dataFile, indexFileFL, dataFileFL, bucket, node, prev_pos_node, record);
+            indexFile.close();
+            dataFile.close();
+            indexFileFL.close();
+            dataFileFL.close();
+            return true;
+        }
+
+        Bucket<TR> new_buck(metadata.block_factor);
+        new_buck.metadata.local_depth = depth + 1;
+        
+        IndexEntry new_node_e;
         new_buck.add(record);
 
         int pos_add = 0;
         if (node.left == -1) {
             node.pos_bucket = -1;
-            node.left = get_pos_add_node(indexFileFL); // count_index;
+            node.left = get_pos_add_node(indexFileFL);
             pos_add = node.left;
         } else {
             node.pos_bucket = -1;
-            node.right = get_pos_add_node(indexFileFL); // count_index;
+            node.right = get_pos_add_node(indexFileFL); 
             pos_add = node.right;
         }
         count_index++;
 
-        new_node_e.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count; 
+        new_node_e.pos_bucket = get_pos_add_bucket(dataFileFL); 
         metadata.count++;
-
-        std::cout << "+++++++++++++++++++++++++++++++++\n";
-        std::cout << pos_add << " -----\n";
-        node.print();
-        new_node_e.print();
-        std::cout << "+++++++++++++++++++++++++++++++++\n";
 
         // write bucket count and index count
         dataFile.seekp(0, std::ios::beg);
@@ -388,7 +263,7 @@ bool ExtHashFile<TR, TK>::add(TR record) {
     dataFile.close();
     indexFileFL.close();
     dataFileFL.close();
-    return false;
+    return true;
 }
 
 template <typename TR, typename TK>
@@ -417,6 +292,7 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
     int pos_record{};
     bool found {false};
     auto result = find_record(key, pos_bucket, record, pos_record, found);
+
     std::vector<int> nodes_to_delete{};
     int desc_depth{};
 
@@ -426,13 +302,6 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
         Bucket<TR> bucket(metadata.block_factor);
         dataFile.seekg((pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
         bucket.read(dataFile);
-
-        std::cout << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n";
-        for (auto &p: path) {
-            std::cout << "--> " << p << std::endl;
-        }
-        std::cout << "bin::: " << bin << std::endl;
-        std::cout << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n";
 
         if (bucket.metadata.count == 1) {
             IndexEntry node;
@@ -467,8 +336,6 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
             // update father node
             indexFile.seekp((path[i] * sizeof(node)) + sizeof(count_index), std::ios::beg);
             indexFile.write((char*) &node, sizeof(node));
-            //indexFile.seekp(sizeof(int) + ((i + 1) * sizeof(node)), std::ios::beg);
-            //indexFile.write((char*) &node, sizeof(node)); 
             
             // update metadata: global_depth, count
             dataFile.seekp(0, std::ios::beg);
@@ -480,12 +347,12 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
 
             // remove nodes
             remove_node(indexFileFL, nodes_to_delete);
+
             // remove bucket
             remove_bucket(dataFileFL, pos_bucket);
 
         } else {
             bucket.remove(pos_record);
-
             dataFile.seekp((pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
             dataFile.write((char*) &bucket.metadata, sizeof(bucket.metadata));
             for (int i = 0; i < bucket.metadata.capacity; ++i) {
@@ -548,7 +415,6 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
     if (is_empty(indexFile)) {
         std::cout << "There are no records in the datafile\n";
         return nullptr;
-        //throw ("There are no records in the datafile\n");
     }
 
     IndexEntry node;
@@ -558,22 +424,13 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
     int depth{};
 
     find_node_pos(indexFile, binary, pos_node, prev_pos_node, depth);
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
-    std::cout << "binary " << binary << std::endl;
-    std::cout << "pos_node " << pos_node << std::endl;
-    std::cout << "prev_pos_node " << prev_pos_node << std::endl;
-    std::cout << "depth " << depth << std::endl;
-    //record.print();
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
 
     if (pos_node == -1) {
         indexFile.seekg((prev_pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
 
-            std::cout << "no etra1\n";
         if (node.is_leaf()) {
             node.print();
-            std::cout << "no etra2\n";
             Bucket<TR> bucket(metadata.block_factor);
             dataFile.seekg((node.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
             bucket.read(dataFile);
@@ -586,19 +443,17 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
                     pos_record = i;
                     found = true;
                     return record_ptr; 
-                    //return bucket.records[i];
                 }
             }
             std::cout << "No record was found with that key" << std::endl;
             return nullptr;
-            //return {};
+       
         } else {
             std::cout << "No record was found with that key" << std::endl;
             return nullptr;
-            //return {};
+            
         }
     } else {
-         std::cout << "no etra3\n";
         indexFile.seekg((pos_node * sizeof(IndexEntry)) + sizeof(int), std::ios::beg);
         indexFile.read((char*) &node, sizeof(IndexEntry));
 
@@ -614,17 +469,14 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
                 pos_record = i;
                 found = true;
                 return record_ptr; 
-                //return bucket.records[i];
             }
         }
         std::cout << "No record was found with that key" << std::endl;
         return nullptr;
-        //return {};
     }
     indexFile.close();
     dataFile.close();
     return nullptr;
-    //return {};
 }
 
 template <typename TR, typename TK>
@@ -672,7 +524,7 @@ void ExtHashFile<TR, TK>::add_record_rehashing(std::fstream& indexFile, std::fst
         }
         count_index++;
 
-        new_node_e.pos_bucket = get_pos_add_bucket(dataFileFL); // metadata.count;
+        new_node_e.pos_bucket = get_pos_add_bucket(dataFileFL);
         metadata.count++;
         
         // write bucket count and index count
@@ -692,6 +544,126 @@ void ExtHashFile<TR, TK>::add_record_rehashing(std::fstream& indexFile, std::fst
         // write new node
         indexFile.seekp(sizeof(int) + (pos_add * sizeof(new_node_e)), std::ios::beg);
         indexFile.write((char*) &new_node_e, sizeof(IndexEntry));
+    }
+}
+
+template <typename TR, typename TK>
+void ExtHashFile<TR, TK>::add_record(std::fstream& indexFile, std::fstream& dataFile, std::fstream& indexFileFL, std::fstream& dataFileFL, Bucket<TR>& bucket, IndexEntry& node, int pos_node, TR record) {
+    if (bucket.is_full()) {
+        std::vector<IndexEntry> nodes;
+        std::string bit_sequence = "";
+        while (!bucket.evaluate_split()) { 
+            if (metadata.global_depth == bucket.metadata.local_depth) 
+                metadata.global_depth++;
+            bucket.metadata.local_depth++;
+            IndexEntry new_node;
+            nodes.emplace_back(new_node);
+            bit_sequence += bucket.get_common_bit(); 
+        };
+        if (metadata.global_depth == bucket.metadata.local_depth) 
+            metadata.global_depth++;
+        bucket.metadata.local_depth++;
+
+        IndexEntry n_left;
+        IndexEntry n_right;
+
+        Bucket<TR> new_bucket_right = bucket.split(); 
+        std::vector<int> pos_nodes_add;
+
+        if (bit_sequence.empty()) {
+            node.left = get_pos_add_node(indexFileFL); 
+            pos_nodes_add.push_back(node.left);
+            count_index++;
+            node.right = get_pos_add_node(indexFileFL);
+            pos_nodes_add.push_back(node.right);
+            count_index++;
+            n_left.pos_bucket = node.pos_bucket;
+            n_right.pos_bucket = get_pos_add_bucket(dataFileFL); 
+            metadata.count++;
+            node.pos_bucket = -1;
+        } else {
+            if (bit_sequence[0] == '0') {
+                node.left = get_pos_add_node(indexFileFL); 
+                pos_nodes_add.push_back(node.left);
+            } else {
+                node.right = get_pos_add_node(indexFileFL); 
+                pos_nodes_add.push_back(node.right);
+            }
+            count_index++;
+
+            int i = 0;
+            for (i = 0; i < nodes.size() - 1; ++i) { 
+                if (bit_sequence[i + 1] == '0') {
+                    nodes[i].left = get_pos_add_node(indexFileFL);
+                    pos_nodes_add.push_back(nodes[i].left);
+                }
+                else {
+                    nodes[i].right = get_pos_add_node(indexFileFL); 
+                    pos_nodes_add.push_back(nodes[i].right);
+                }
+                count_index++;
+            }
+            nodes[i].left = get_pos_add_node(indexFileFL); 
+            pos_nodes_add.push_back(nodes[i].left);
+            count_index++;
+            nodes[i].right = get_pos_add_node(indexFileFL); 
+            pos_nodes_add.push_back(nodes[i].right);
+            count_index++;
+            
+            n_left.pos_bucket = node.pos_bucket;
+            n_right.pos_bucket = get_pos_add_bucket(dataFileFL); 
+            metadata.count++;
+            node.pos_bucket = -1;
+        }
+
+        // write bucket count and global_depth update
+        dataFile.seekp(0, std::ios::beg);
+        dataFile.write((char*) &metadata.count, sizeof(int)); 
+        dataFile.write((char*) &metadata.global_depth, sizeof(int)); 
+
+        // write node count update
+        indexFile.seekp(0, std::ios::beg);
+        indexFile.write((char*) &count_index, sizeof(int)); 
+
+        // update bucket
+        dataFile.seekp((n_left.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
+        dataFile.write((char*) &bucket.metadata, sizeof(bucket.metadata));
+        for (int i = 0; i < bucket.metadata.capacity; ++i) {
+            dataFile.write((char*) &bucket.next_del[i], sizeof(int));   
+        }
+        
+        // write new bucket
+        dataFile.seekp(sizeof(metadata) + (n_right.pos_bucket * new_bucket_right.size_of()), std::ios::beg);
+        new_bucket_right.write(dataFile);  
+
+        // write node updated
+        indexFile.seekp(pos_node * sizeof(IndexEntry) + sizeof(count_index), std::ios::beg);
+        indexFile.write((char*) &node, sizeof(IndexEntry));
+        
+        // write news nodes
+        if (!bit_sequence.empty()) {
+            int i = 0;
+            for (i = 0; i < nodes.size(); ++i) {
+                indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
+                indexFile.write((char*) &nodes[i], sizeof(IndexEntry));
+            }
+            indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
+            indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
+            i++;
+            indexFile.seekp(sizeof(int) + (pos_nodes_add[i] * sizeof(IndexEntry)), std::ios::beg);
+            indexFile.write((char*) &n_right, sizeof(IndexEntry));
+        } else {
+            indexFile.seekp(sizeof(int) + (pos_nodes_add[0] * sizeof(IndexEntry)), std::ios::beg);
+            indexFile.write((char*) &n_left, sizeof(IndexEntry)); 
+
+            indexFile.seekp(sizeof(int) + (pos_nodes_add[1] * sizeof(IndexEntry)), std::ios::beg);
+            indexFile.write((char*) &n_right, sizeof(IndexEntry)); 
+        }
+
+        add_record_rehashing(indexFile, dataFile, indexFileFL, dataFileFL, record); 
+    }
+    else {
+        bucket.add(dataFile, node.pos_bucket, record);
     }
 }
 
@@ -727,9 +699,9 @@ void ExtHashFile<TR, TK>::print() {
     dataFile.seekg(0, std::ios::beg);
     dataFile.read((char*) &metadata, sizeof(metadata));
     std::cout << "Metadata:" << std::endl;
-    std::cout << "count: " << metadata.count << std::endl;
-    std::cout << "global_depth: " << metadata.global_depth << std::endl;
-    std::cout << "block_factor: " << metadata.block_factor << std::endl;
+    std::cout << ":: count: " << metadata.count << std::endl;
+    std::cout << ":: global_depth: " << metadata.global_depth << std::endl;
+    std::cout << ":: block_factor: " << metadata.block_factor << std::endl;
 
     for (int i = 0; i < capacity(dataFileFL); ++i) {
         Bucket<TR> bucket(metadata.block_factor);
@@ -754,7 +726,7 @@ int ExtHashFile<TR, TK>::get_pos_add_bucket(std::fstream& dataFileFL) {
     dataFileFL.seekg(0, std::ios::beg);
     dataFileFL.read((char*) &pos_header, sizeof(pos_header));
     
-    if (pos_header == -1) { // 0 0 0 ...
+    if (pos_header == -1) {
         int add_new_pos = 0;
         dataFileFL.seekp(0, std::ios::end);
         dataFileFL.write((char*) &add_new_pos, sizeof(add_new_pos));
@@ -783,7 +755,7 @@ int ExtHashFile<TR, TK>::get_pos_add_node(std::fstream& indexFileFL) {
     indexFileFL.seekg(0, std::ios::beg);
     indexFileFL.read((char*) &pos_header, sizeof(pos_header));
     
-    if (pos_header == -1) { // 0 0 0 ...
+    if (pos_header == -1) {
         int add_new_pos = 0;
         indexFileFL.seekp(0, std::ios::end);
         indexFileFL.write((char*) &add_new_pos, sizeof(add_new_pos));
@@ -837,7 +809,6 @@ std::vector<int> ExtHashFile<TR, TK>::get_path_traversal(std::fstream& file, int
     }
     return path;
 }
-
 
 template <typename TR, typename TK>
 void ExtHashFile<TR, TK>::remove_node(std::fstream& indexFileFL, std::vector<int> nodes_to_delete) {

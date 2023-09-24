@@ -25,5 +25,3 @@ struct Player {
     long get_key();
     friend std::istream& operator>>(std::istream& is, Player& player);  
 };
-
-// Record get_record(const std::string& filename);
