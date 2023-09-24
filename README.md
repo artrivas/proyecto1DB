@@ -36,9 +36,7 @@ Datos sobre todos 548 jugadores de la NBA activos durante la temporada 2022-2023
 ## 3. Desempeño de las técnicas de indexación 
 ### AVL FILE:
 AVL ofrece una mayor eficiencia en la búsqueda y manipulación de registros individuales, ya que es completamente dinámico. Esto lo hace más adecuado para aplicaciones donde se necesitan búsquedas de registros frecuentes y eficientes. Para aplicaciones que requieren búsquedas por rango de valores en la clave de índice, es particularmente útil.Aún así, reconocemos que ISAM puede ser más eficiente en términos de uso de memoria ya que no necesita almacenar toda la estructura del árbol como lo hace el archivo AVL.
-<p align="center">
-  <img src=(https://github.com/artrivas/proyecto1DB/assets/87825436/33165592-60ee-48f9-8713-a917518e926f)" alt="Descripción de la imagen">
-</p>
+![image](![image](https://github.com/artrivas/proyecto1DB/assets/87825436/44403560-f8f6-42e8-bfe4-b3bdda6d0240)
 
 ### Sequential File:
 Un archivo secuencial es un archivo de datos donde los registros o entradas se almacenan de manera consecutiva, uno detrás del otro, en un solo flujo o secuencia de datos. Cada registro en el archivo tiene una longitud fija o variable. Lamentablemente debido a su naturaleza secuencial, el acceso a registros específicos dentro de un archivo secuencial puede ser lento, especialmente si se necesita acceder a un registro cercano al final del archivo.
