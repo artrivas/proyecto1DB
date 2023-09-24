@@ -113,9 +113,7 @@ void Bucket<TR>::add(std::fstream &dataFile, int pos_bucket, TR record) {
     metadata.count++;
     if (((metadata.empty_ptr < metadata.head_ptr) || (metadata.head_ptr == -1)) && (metadata.empty_ptr != -1)) {
         int pos_empty = metadata.empty_ptr - 1; 
-        records[pos_empty].print(); 
         records[pos_empty] = record;
-        records[pos_empty].print(); 
         next_del[pos_empty] = 0;
 
         dataFile.seekp(pos + (sizeof(int) * (5 + pos_empty)), std::ios::beg);

@@ -430,7 +430,6 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
         indexFile.read((char*) &node, sizeof(IndexEntry));
 
         if (node.is_leaf()) {
-            node.print();
             Bucket<TR> bucket(metadata.block_factor);
             dataFile.seekg((node.pos_bucket * bucket.size_of()) + sizeof(metadata), std::ios::beg);
             bucket.read(dataFile);
@@ -445,11 +444,11 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
                     return record_ptr; 
                 }
             }
-            std::cout << "No record was found with that key" << std::endl;
+            // std::cout << "No record was found with that key" << std::endl;
             return nullptr;
        
         } else {
-            std::cout << "No record was found with that key" << std::endl;
+            // std::cout << "No record was found with that key" << std::endl;
             return nullptr;
             
         }
@@ -471,7 +470,7 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
                 return record_ptr; 
             }
         }
-        std::cout << "No record was found with that key" << std::endl;
+        // std::cout << "No record was found with that key" << std::endl;
         return nullptr;
     }
     indexFile.close();
@@ -713,6 +712,7 @@ void ExtHashFile<TR, TK>::print() {
         if (next_d == 0) {
             dataFile.seekg((i * bucket.size_of()) + sizeof(metadata), std::ios::beg);
             bucket.read(dataFile);
+            std::cout << "\n>> Bucket " << i << ":";
             bucket.print();
         }
     }
