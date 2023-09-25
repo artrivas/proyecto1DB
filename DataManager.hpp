@@ -8,7 +8,9 @@
 #include "exthash/src/ExtHashFile.hpp"
 #include "avl/src/AVL.h"
 #include "records/Record.h"
+#include<map>
 #include "utils/csvToBin.hpp"
+#include<cstring>
 
 using namespace std;
 
@@ -18,25 +20,53 @@ private:
     vector<AVLFile<TR>> avl_indexes;
     vector<ExtHashFile<TR, TK>> hash_indexes;
     vector<SequentialFile<TR>> seq_indexes;
+    map<string,int> index;
 
 public:
+
+        
+    DataManager() {
+        setup_index();
+    };
     
-    DataManager() {};
-    
-    void create_avl_index(string index_filename, string heap_filename) {
-        auto compare_function = [](char a[],char b[]) -> int{
-            if(std::string(a) > std::string(b)){
-                return 1;
-            }else if(std::string(a) < std::string(b)){
-                return -1;
-            }else{
-                return 0;
-            }
-        };
-        bool pk = false;
-        int attrpos = 1;
-        AVLFile<TK> avl_index(index_filename, heap_filename, compare_function, pk,attrpos);
-        avl_indexes.push_back(avl_index);
+    void setup_index(){
+        index["playerid"] = 0;
+        index["fname"] = 1;
+        index["lname"] = 2;
+        index["position"] = 3;
+        index["height"] = 4;
+        index["weight"] = 5;
+        index["birthday"] = 6;
+        index["country"] = 7;
+        index["school"] = 8;
+        index["draft_year"] = 9;
+        index["draft_round"] = 10;
+        index["draft_number"] = 11;
+    }
+
+
+    void create_avl_index(string index_filename, string heap_filename, string typeindex) {
+        bool pk = !index[typeindex];
+        int attrpos = index[typeindex];
+        if(typeindex == "playerid" || typeindex == "weight" || typeindex == "draft_year" || typeindex == "draft_round" || typeindex == "draft_number"){
+             auto compare_function = [](char a[],char b[]) -> int{
+                 return strcmp(a,b);
+            };
+            AVLFile<TK> avl_index(index_filename, heap_filename, compare_function, pk,attrpos);
+            avl_indexes.push_back(avl_index);
+        }else{
+            auto compare_function = [](long a[],long b[]) -> int{
+                if(a > b){
+                    return 1;
+                }else if(a < b){
+                    return -1;
+                }else{
+                    return 0;
+                }
+            };
+            AVLFile<TK> avl_index(index_filename, heap_filename, compare_function, pk,attrpos);
+            avl_indexes.push_back(avl_index);
+        }
     }
 
     void create_hash_index(string filename, string index_field) {
