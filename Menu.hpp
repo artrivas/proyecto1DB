@@ -41,7 +41,6 @@ public:
 
     std::vector<std::string> getValues(const std::string& input);
 
-    void load(string file);
     void clear();
     void pause(); 
 };
