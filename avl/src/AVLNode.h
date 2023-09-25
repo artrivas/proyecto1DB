@@ -13,7 +13,7 @@ struct AVLNode{
     long height = 0;
     long list_pointer = -1;
     AVLNode(KeyType key, long file_position){
-        strcpy(this->key,key); //Tiene que ser generico para int
+        memcpy((char*)&this->key,(char*) key,sizeof(this->key));
         this->file_position = file_position;
         this->left = -1;
         this->right = -1;

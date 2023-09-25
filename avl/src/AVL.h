@@ -1,15 +1,17 @@
+//
+// Created by artrivas on 9/12/23.
+//
 
-#pragma once
-#include "AVLNode.hpp"
+#ifndef UNTITLED_AVL_H
+#define UNTITLED_AVL_H
+#include "AVLNode.h"
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <stdio.h>
-#include <string.h>
-#include "./records/Player.hpp"
-
-using Record = Player;
-
+#include<fstream>
+#include<vector>
+#include<cstdio>
+#include<cstring>
+#include "Record.h"
+#include<functional>
 using namespace std;
 template<typename KeyType,int attrpos>
 class AVLFile
@@ -19,15 +21,22 @@ class AVLFile
     ifstream readfile;
     ofstream writefile;
     long pos_root{};
-    //8,20,20,20,5,4,11,15,25,4,4,4
-    vector<int> prefix_sum = {0,8,28,48,68,73,77,88,103,128,132,136}; //Aca me puede agarrar heider
+    vector<long> prefix_sum;
+    function<int(KeyType,KeyType)> compare; //Lambda for comparing
+    bool is_primary_key{};
+
 public:
-    explicit AVLFile(const string & indexfilename, const string & heapfilename){
+    explicit AVLFile(const string & indexfilename, const string & heapfilename,function<int(KeyType,KeyType)> compare_function,bool pk){
         this->pos_root = 1;
         this->indexfilename = indexfilename;
         this->heapfilename = heapfilename;
         this->writefile.open(this->indexfilename,ios::binary | ios::in);
         this->readfile.open(this->indexfilename,ios::binary);
+        this->compare = compare_function;
+        Record a = Record{};
+        this->prefix_sum.resize((long)a.get_prefix().size());
+        this->prefix_sum = a.get_prefix();
+        this->is_primary_key = pk;
     }
     void setup_files(){
         this->readfile.close();
@@ -45,13 +54,13 @@ public:
         return node;
     }
 
-    void insert(Record record) {
+    bool insert(Record record) {
         setup_files();
         ofstream file(this->heapfilename,ios::binary | ios::app);
         file.write((char *) &record, sizeof(Record));
         unsigned long nodepos = file.tellp()/sizeof(Record);
         file.close();
-        add(nodepos);
+        return add(nodepos);
     }
 
     vector<Record> find(KeyType & key){
@@ -93,13 +102,13 @@ public:
         return left_node.height-right_node.height;
     }
 
-    //Eliminar un nodo es seteando su valor a -1
+    //Eliminar un nodo es seteando su fileposition a -1
     long _remove(KeyType key,AVLNode<KeyType> cmp_node,long pos){
         if(cmp_node.file_position == -1) return -2;
-        int result1 = strcmp(cmp_node.key,key);
+        int result1 = this->compare(cmp_node.key,key);
         if(result1 > 0){
             AVLNode<KeyType> left_node = get_node(cmp_node.left);
-            int result2 = strcmp(left_node.key,key);
+            int result2 = this->compare(left_node.key,key);
             if(!result2){
                 cmp_node.left = _remove(key,left_node,cmp_node.left);
                 insert_node_by_pos(cmp_node,pos);
@@ -108,7 +117,7 @@ public:
             }
         }else if(result1 < 0){
             AVLNode<KeyType> right_node = get_node(cmp_node.right);
-            int result3 = strcmp(right_node.key,key);
+            int result3 = this->compare(right_node.key,key);
             if(!result3){
                 cmp_node.right = _remove(key,right_node,cmp_node.right);
                 insert_node_by_pos(cmp_node,pos);
@@ -172,8 +181,8 @@ private:
     void _rangeSearch(AVLNode<KeyType> cmp_node, KeyType & bkey, KeyType & ekey,vector<AVLNode<KeyType>> & ans){
         if(cmp_node.file_position == -1)
             return;
-        int result1 = strcmp(bkey,cmp_node.key); //bkey <= cmp.key
-        int result2 = strcmp(cmp_node.key,ekey); //cmp.key <= ekey
+        int result1 = this->compare(bkey,cmp_node.key); //bkey <= cmp.key
+        int result2 = this->compare(cmp_node.key,ekey); //cmp.key <= ekey
         if(result1<=0){
             AVLNode<KeyType> new_cmp_node;
             readfile.seekg((cmp_node.left-1)*sizeof(AVLNode<KeyType>));
@@ -201,7 +210,7 @@ private:
         readfile.seekg((pos_node-1)*sizeof(AVLNode<KeyType>));
         AVLNode<KeyType> cmp_node;
         readfile.read((char*) &cmp_node,sizeof(AVLNode<KeyType>));
-        int result = strcmp(key,cmp_node.key);
+        int result = this->compare(key,cmp_node.key);
         if(result > 0){
             return find(cmp_node.right,key);
         }else if(result <0){
@@ -296,38 +305,39 @@ private:
     }
 
 
-    void _add(long pos_node,AVLNode<KeyType> & node){
+    bool _add(long pos_node,AVLNode<KeyType> & node){
         readfile.seekg((pos_node-1)*sizeof(AVLNode<KeyType>));
         AVLNode<KeyType> cmp_node;
         readfile.read((char*) & cmp_node, sizeof(cmp_node));
-        int result = strcmp(node.key,cmp_node.key);
+        int result = this->compare(node.key,cmp_node.key);
         if(result > 0){
             if(cmp_node.right == -1){
                 push_node(pos_node,node,cmp_node,1);
-                cout << cmp_node.left << ' ' << cmp_node.right  << ' ' << cmp_node.key<< '\n';
             }else{
                 _add(cmp_node.right,node);
             }
         }else if(result < 0){
             if(cmp_node.left == -1){
                 push_node(pos_node,node,cmp_node,0);
-                cout << cmp_node.left << ' ' << cmp_node.right  << ' ' << cmp_node.key<< '\n';
             }else{
                 _add(cmp_node.left,node);
             }
         }else{
+            if(is_primary_key){
+                return false;
+            }
             //El caso en donde se repita las variables en caso no sea llave primaria;
             //De alguna forma tengo que saber si la llave es primaria
             push_node(pos_node,node,cmp_node,2);
-            return;
+            return true;
         }
         update_height(cmp_node,pos_node);
         //Balance tree
         AVLNode<KeyType> left_node = get_node(cmp_node.left);
         AVLNode<KeyType> right_node = get_node(cmp_node.right);
         int balancing_factor = left_node.height - right_node.height;
-        int resultleft = strcmp(node.key,left_node.key);
-        int resultright = strcmp(node.key,right_node.key);
+        int resultleft = this->compare(node.key,left_node.key);
+        int resultright = this->compare(node.key,right_node.key);
         if(balancing_factor > 1 && resultleft < 0){//left left
             right_rotation(cmp_node,pos_node);
         }else if(balancing_factor < -1 &&  0 < resultright){ //right right
@@ -339,10 +349,11 @@ private:
             right_rotation(right_node,cmp_node.right);
             left_rotation(cmp_node,pos_node);
         }
+        return true;
     }
 
     //El método add inserta el registro despues de la insercion en el heapfile, si es un scanall, no habria necesidad
-    void add(long fileposition){ //Este metodo asume que ya existen registros en el heapfile
+    bool add(long fileposition){ //Este metodo asume que ya existen registros en el heapfile
         bool valid = readfile.peek() == std::ifstream::traits_type::eof(); //El archivo esta vacio (?)
         AVLNode<KeyType> node = create_node(fileposition);
         if(valid){ //Si lo esta entonces solo insertamos el nodo
@@ -353,10 +364,12 @@ private:
             if(root_node.file_position == -1)
                 writefile.write((char*) &node, sizeof(AVLNode<KeyType>));
             else
-                _add(pos_root,node);
+                return _add(pos_root,node);
         }
+        return true;
     }
 
 
 };
 
+#endif //UNTITLED_AVL_H
