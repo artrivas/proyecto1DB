@@ -82,10 +82,19 @@ Extensible Hashing es una técnica de organización de datos que se utiliza para
 ![image](https://github.com/artrivas/proyecto1DB/assets/87825436/1cde3731-62ba-4a11-a005-b63601966188)
 
 ### 3.1.1. Inserción
+![Grafico 1](graficos/grafico1.png)
+![Grafico 2](graficos/grafico2.png)
 ### 3.1.2. Búsqueda
-### 3.1.3. Eliminación
+![Grafico 3](graficos/grafico3.png)
+![Grafico 4](graficos/grafico4.png)
 ## 4. Interfaz gráfica
+
 ## 5. Video Demostrativo
 [Video Demostrativo](https://drive.google.com/drive/folders/1Dkh2F_ApZAGWXzrcB1O12xspLON71-JI?usp=sharing)
 ## 6. Conclusiones
+El uso de estructura de datos en archivos facilita el ingreso a los registros de manera mas eficiente y menos compleja que la forma comun.
 ## 7. Referencias
+* Estructura de datos : Archivos ( files ). (s. f.). https://www.fceia.unr.edu.ar/estruc/2006/fileintr.htm
+* IBM documentation. (s. f.). https://www.ibm.com/docs/es/iis/11.5?topic=sets-structure-data
+* rincondelvago.com. (2017, 30 abril). Encuentra aquí información de Estructura de datos: Acceso en ficheros para tu escuela ¡Entra ya! | Rincón del Vago. https://html.rincondelvago.com/estructura-de-datos_acceso-en-ficheros_1.html
+
