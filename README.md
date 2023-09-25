@@ -82,17 +82,37 @@ Extensible Hashing es una técnica de organización de datos que se utiliza para
 ![image](https://github.com/artrivas/proyecto1DB/assets/87825436/1cde3731-62ba-4a11-a005-b63601966188)
 
 ### 3.1.1. Inserción
-![Grafico 1](graficos/grafico1.png)
-![Grafico 2](graficos/grafico2.png)
+
+<img src="graficos/grafico1.png" alt="GRAFICO 1" width="500" height="500">
+<img src="graficos/grafico2.png" alt="GRAFICO 2" width="500" height="500">
+
 ### 3.1.2. Búsqueda
-![Grafico 3](graficos/grafico3.png)
-![Grafico 4](graficos/grafico4.png)
+
+<img src="graficos/grafico3.png" alt="GRAFICO 3" width="500" height="500">
+<img src="graficos/grafico4.png" alt="GRAFICO 4" width="500" height="500">
+
 ## 4. Interfaz gráfica
+La interfaz fue desarrollado en el terminal de la consola.
 
 ## 5. Video Demostrativo
 [Video Demostrativo](https://drive.google.com/drive/folders/1Dkh2F_ApZAGWXzrcB1O12xspLON71-JI?usp=sharing)
 ## 6. Conclusiones
 El uso de estructura de datos en archivos facilita el ingreso a los registros de manera mas eficiente y menos compleja que la forma comun.
+Durante la realización de nuestro proyecto universitario, que involucró el uso de estructuras de datos como los árboles AVL, el hashing extensible y los archivos secuenciales para gestionar datos, hemos adquirido conocimientos valiosos y experiencia en varias áreas:
+* Árboles AVL:
+Aprendimos que los árboles AVL son estructuras de búsqueda equilibradas que son excelentes para mantener datos ordenados.
+Comprendimos cómo las rotaciones y equilibrios mantienen la estructura en óptimas condiciones para búsquedas eficientes.
+Experimentamos con operaciones de inserción, eliminación y búsqueda en árboles AVL.
+* Hashing Extensible:
+Descubrimos que el hashing extensible es eficiente para búsquedas rápidas en conjuntos de datos grandes.
+Exploramos cómo el tamaño de las tablas de dispersión se expande y contrae dinámicamente según sea necesario.
+Aprendimos a manejar colisiones y cómo dividir o fusionar tablas de dispersión.
+* Archivos Secuenciales:
+Adquirimos habilidades prácticas en la gestión de archivos secuenciales, lo que es esencial en la ciencia de datos y la gestión de bases de datos.
+Aprendimos a organizar datos de manera eficiente en disco y a realizar operaciones de lectura y escritura en archivos secuenciales.
+* Consideraciones de Rendimiento y Eficiencia:
+Reconocimos la importancia de evaluar el rendimiento y la eficiencia de cada estructura de datos en diferentes situaciones.
+Comparamos operaciones de inserción, búsqueda y eliminación en árboles AVL, hashing extensible , Sequential File.
 ## 7. Referencias
 * Estructura de datos : Archivos ( files ). (s. f.). https://www.fceia.unr.edu.ar/estruc/2006/fileintr.htm
 * IBM documentation. (s. f.). https://www.ibm.com/docs/es/iis/11.5?topic=sets-structure-data
