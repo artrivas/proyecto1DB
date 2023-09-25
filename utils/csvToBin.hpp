@@ -6,13 +6,11 @@
 #include <sstream>
 
 template <typename TypeRecord>
-void csvToBin(const std::string & csvfile, const std::string & binfile) {
+void csvToBin(const std::string& csvfile, const std::string& binfile) {
     std::ifstream inputFile(csvfile);
     std::ofstream outputFile(binfile, std::ios::binary | std::ios::app);
-    
     if (!inputFile.is_open())
         throw std::runtime_error("Cannot open csvfile"); 
-    
     if (!outputFile.is_open())
         throw std::runtime_error("Cannot open binfile"); 
     

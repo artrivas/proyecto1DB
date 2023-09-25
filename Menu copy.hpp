@@ -23,17 +23,16 @@ template <typename TR, typename TK>
 class Menu {
 private:
 
-    map<string, vector<string>> indexes_name{};
+    map<string, vector<string>> indexes_name;
     DataManager<TR, TK>& data_manager;
     Parser& parser;
 
 public:
 
     Menu(DataManager<TR, TK>& data_manager, Parser& parser);
-    ~Menu();
 
-    void display_main();
-    void display_input_statement();
+    void display();
+    void input_statement();
     void execute(map<string, string>& instructions);
 
     void create(map<string, string>& instructions);
@@ -43,8 +42,6 @@ public:
 
     std::vector<std::string> getValues(const std::string& input);
     bool contains(std::vector<std::string>& indexes, std::string index); 
-    void save_indexes_name(const std::map<std::string, std::vector<std::string>>& mapa, const std::string& nombre_archivo);
-    std::map<std::string, std::vector<std::string>> load_indexes_name(const std::string& nombre_archivo);
 
     void clear();
     void pause(); 
@@ -53,93 +50,47 @@ public:
 // Implementation of Menu
 
 template <typename TR, typename TK>
-Menu<TR, TK>::Menu(DataManager<TR, TK>& data_manager, Parser& parser) : data_manager(data_manager), parser(parser) {
-    indexes_name = load_indexes_name("index/exthash/indexes_name.txt");
-    std::cout << "INDEXES LOADED" << std::endl;
-    for (auto& [k, v]: indexes_name) {
-        std::cout << k << ": "; 
-        for (auto& p: v) 
-            std::cout << p << " ";
-        std::cout << std::endl;
-    }
-}
+Menu<TR, TK>::Menu(DataManager<TR, TK>& data_manager, Parser& parser) : data_manager(data_manager), parser(parser) {}
 
 template <typename TR, typename TK>
-Menu<TR, TK>::~Menu() {
-    save_indexes_name(indexes_name, "index/exthash/indexes_name.txt");
-    std::cout << "INDEXES SAVED" << std::endl;
-    for (auto& [k, v]: indexes_name) {
-        std::cout << k << ": "; 
-        for (auto& p: v) 
-            std::cout << p << " ";
-        std::cout << std::endl;
-    }
-}
-
-
-template <typename TR, typename TK>
-void Menu<TR, TK>::display_main() {
+void Menu<TR, TK>::display() {
     cout << "\n---------------------------------------------\n";
     cout << "----------- Bienvenido a MySGDB -------------\n";
     cout << "---------------------------------------------\n";
-    cout << "\n\t[1] Insertar una sentencia SQL\n";
-    cout << "\t[2] Cerrar sesion\n";
-    
-    int option;
-    do {
-        cout << "\n>> Elije una opcion: ";
-        cin >> option;
-    } while (1 > option || option > 2);
-
-    cout << "\n\n";
-    clear();
-
-    switch (option) {
-    case 1:
-        display_input_statement();
-        break;
-    case 2:
-        cout << "** Gracias siuuuu! :) **\n";
-        break;
-    }
+    input_statement();
 }
 
 template <typename TR, typename TK>
-void Menu<TR, TK>::display_input_statement() {
-    std::string statement{};
+void Menu<TR, TK>::input_statement(){
+    string statement;
     std::map<std::string, std::string> instruction;
     
-    std::cout << "** Puedes presionar 0 para salir al menu principal **\n";
     do {
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
-        cin.clear();
         cout << "\n:: Inserte su sentencia SQL: \n\n>> ";
         std::getline(std::cin, statement);
-
-        if (statement == "0") break;
         parser.setStatement(statement);
         instruction = parser.getInstruction();
+        std::cout << "::::::::" << instruction.size() << endl;
+        //
+        for (auto& [k, v]: instruction){
+            std::cout << k << " : " << v << '\n';
+        }
+        //
     } while (statement.size() == 0 || instruction.empty() == true);
-    
-    if (statement == "0") {
-        pause();
-        clear();
-        display_main();
-        return;
-    }
 
-    execute(instruction); // se considera valido
-    // cout << "\n*** Ejecucion exitosa :) ***\n";
-    
     pause();
     clear();
-    display_main();
+
+    execute(instruction); // se considera valido
+    cout << "\n*** Ejecucion exitosa :)\n";
 }
 
 template <typename TR, typename TK>
 void Menu<TR, TK>::execute(map<string, string>& instructions) {
-    if (instructions["operation"] == "create") 
+    if (instructions["operation"] == "create") {
+        std::cout << "ENTROOOOOOOOOOO2\n"; //////
         create(instructions);
+    }
     else if (instructions["operation"] == "insert") 
         insert(instructions);
     else if (instructions["operation"] == "select") 
@@ -171,7 +122,7 @@ void Menu<TR, TK>::insert(map<string, string>& instructions) {
     TR record(fields); 
     for (auto& index : indexes) {
         if (index == "hash") {
-            data_manager.insert_hash_index(instructions["table_name"], record);
+            data_manager.insert_hash_index(record);
         }
         else if (index == "avl") {
             // data_manager.insert_avl_index(record);
@@ -188,7 +139,7 @@ void Menu<TR, TK>::select(map<string, string>& instructions) {
 
     if (instructions["operator"] == "=") {
         if (contains(indexes, "hash")) {
-            data_manager.select_hash_index(stoi(instructions["value"]), instructions["table_name"], instructions["index_field"]); 
+            data_manager.select_hash_index(stoi(instructions["value"])); 
         }
         else if (contains(indexes, "avl")) {
             // data_manager.select_avl_index(stoi(instructions["value"]));
@@ -217,7 +168,7 @@ void Menu<TR, TK>::remove(map<string, string>& instructions) {
     std::vector<std::string> indexes = indexes_name["table_name"];
     for (auto& index : indexes) {
         if (index == "hash") {
-            data_manager.remove_hash_index(stoi(instructions["value"]), instructions["table_name"], instructions["index_field"]);
+            data_manager.remove_hash_index(stoi(instructions["value"]));
         }
         else if (index == "avl") {
             // data_manager.remove_avl_index(stoi(instructions["value"]));
@@ -261,69 +212,13 @@ bool Menu<TR, TK>::contains(std::vector<std::string>& indexes, std::string index
 }
 
 template <typename TR, typename TK>
-void Menu<TR, TK>::save_indexes_name(const std::map<std::string, std::vector<std::string>>& mapa, const std::string& nombre_archivo) {
-    std::ofstream archivo(nombre_archivo);
-
-    if (archivo.is_open()) {
-        for (const auto& entry : mapa) {
-            archivo << entry.first << ": ";
-            for (const auto& valor : entry.second) {
-                archivo << valor << " ";
-            }
-            archivo << "\n";
-        }
-        archivo.close();
-    } else {
-        std::cerr << "No se pudo abrir el archivo para escritura." << std::endl;
-    }
-}
-
-template <typename TR, typename TK>
-std::map<std::string, std::vector<std::string>> Menu<TR, TK>::load_indexes_name(const std::string& nombre_archivo) {
-    std::map<std::string, std::vector<std::string>> mapa;
-    std::ifstream archivo(nombre_archivo);
-
-    if (archivo.is_open()) {
-        std::string linea;
-        while (std::getline(archivo, linea)) {
-            std::string clave;
-            std::vector<std::string> valores;
-
-            size_t pos = linea.find(": ");
-            if (pos != std::string::npos) {
-                clave = linea.substr(0, pos);
-                std::string valores_str = linea.substr(pos + 2);
-
-                size_t inicio = 0;
-                size_t fin = valores_str.find(" ");
-
-                while (fin != std::string::npos) {
-                    valores.push_back(valores_str.substr(inicio, fin - inicio));
-                    inicio = fin + 1;
-                    fin = valores_str.find(" ", inicio);
-                }
-
-                valores.push_back(valores_str.substr(inicio));
-                mapa[clave] = valores;
-            }
-        }
-
-        archivo.close();
-    } else {
-        std::cerr << "No se pudo abrir el archivo para lectura" << std::endl;
-    }
-
-    return mapa;
-}
-
-template <typename TR, typename TK>
 void Menu<TR, TK>::clear() {
     system("cls");
 }
 
 template <typename TR, typename TK>
 void Menu<TR, TK>::pause() {
-    std::cout << "\nPresiona Enter para continuar...";
+    std::cout << "Presiona Enter para continuar...";
     getch();
     std::cout << "\n\n";
 }

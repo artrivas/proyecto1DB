@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include <algorithm>
 #include <iostream>
 #include <vector>
@@ -6,23 +8,34 @@
 #include <map>
 
 class Parser {
-private:
+public:
     std::string command;
     std::vector<std::string> tokens;
 
 public:
+    Parser();
     Parser(std::string sqlStatement);
 
+    void setStatement(std::string sqlStatement);
     void tokenize();
 
     std::map<std::string, std::string> getInstruction();
-    std::vector<std::string> getFields(const std::string& command);
-    std::string getTypeIndex(const std::string& command);
+    std::vector<std::string> getFields(const std::string& input);
+    std::string getTypeIndex(const std::string& input);
+    std::string toLowerCase(std::string str);
+    
 };
 
 // Implementation of Parser
 
+Parser::Parser() {}
+
 Parser::Parser(std::string sqlStatement) {
+    command = sqlStatement;
+    tokenize();
+}
+
+void Parser::setStatement(std::string sqlStatement) {
     command = sqlStatement;
     tokenize();
 }
@@ -38,39 +51,42 @@ void Parser::tokenize() {
 
 std::map<std::string, std::string> Parser::getInstruction() {
     std::map<std::string, std::string> instructions;
+    instructions.clear();
     
-    if (tokens.size() >= 9 && tokens[0] == "create" && tokens[1] == "table") {  
+    if (tokens.size() >= 9 && tokens[0] == "create" && tokens[1] == "table") {
         instructions["operation"]   = "create";
-        instructions["table_name"]  = tokens[2];
+        instructions["table_name"]  = toLowerCase(tokens[2]);
         instructions["file_path"]   = tokens[5];
-        instructions["index_field"] = getFields(tokens[8])[0];
-        instructions["type_index"]  = getTypeIndex(tokens[8]);
+        instructions["index_field"] = toLowerCase(getFields(tokens[8])[0]);
+        instructions["type_index"]  = toLowerCase(getTypeIndex(tokens[8]));
     }
     else if (tokens.size() >= 8 && tokens[0] == "select" && tokens[1] == "*" && tokens[6] == "=") {
         instructions["operation"]   = "select";
-        instructions["table_name"]  = tokens[3];
-        instructions["operator"]    = tokens[6];
-        instructions["value"]       = tokens[7];
+        instructions["table_name"]  = toLowerCase(tokens[3]);
+        instructions["index_field"] = toLowerCase(tokens[5]);
+        instructions["operator"]    = toLowerCase(tokens[6]);
+        instructions["value"]       = toLowerCase(tokens[7]);
     }
     else if (tokens.size() >= 10 && tokens[0] == "select" && tokens[1] == "*" && tokens[6] == "between") {
         instructions["operation"]   = "select";
-        instructions["table_name"]  = tokens[3];
-        instructions["operator"]    = tokens[6];
-        instructions["lower_limit"] = tokens[7];
-        instructions["upper_limit"] = tokens[9];
+        instructions["table_name"]  = toLowerCase(tokens[3]);
+        instructions["operator"]    = toLowerCase(tokens[6]);
+        instructions["lower_limit"] = toLowerCase(tokens[7]);
+        instructions["upper_limit"] = toLowerCase(tokens[9]);
     }
     else if (tokens.size() >= 7 && tokens[0] == "insert" && tokens[1] == "into") {
         instructions["operation"]   = "insert";
-        instructions["table_name"]  = tokens[2];
+        instructions["table_name"]  = toLowerCase(tokens[2]);
         instructions["values"]      = command;
     }
     else if (tokens.size() >= 7 && tokens[0] == "delete" && tokens[1] == "from") {
         instructions["operation"]   = "delete";
-        instructions["table_name"]  = tokens[2];
+        instructions["table_name"]  = toLowerCase(tokens[2]);
         instructions["value"]       = tokens[6];
+        instructions["index_field"] = toLowerCase(tokens[4]);
     }
     else {
-        std::cout << "Comando no soportado o no válido" << std::endl;
+        std::cout << "\n*** Sentencia no soportada o no valida ***" << std::endl;
     }
     return instructions;
 }
@@ -109,4 +125,9 @@ std::string Parser::getTypeIndex(const std::string& input) {
         return input.substr(0, init);
     
     return "";
+}
+
+std::string Parser::toLowerCase(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
 }

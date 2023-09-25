@@ -46,6 +46,7 @@ public:
     bool add(TR record);
     bool remove(TK key);
     void print();
+    int count_records();
 
     int get_pos_add_bucket(std::fstream& file); 
     int get_pos_add_node(std::fstream& file); 
@@ -683,6 +684,38 @@ template <typename TR, typename TK>
 int ExtHashFile<TR, TK>::capacity(std::fstream& dataFileFL) {
     int sz = size(dataFileFL);
     return (sz - sizeof(int)) / (sizeof(int));
+}
+
+template <typename TR, typename TK>
+int ExtHashFile<TR, TK>::count_records() {
+    std::fstream dataFile(datafile, std::ios::binary | std::ios::in | std::ios::out);
+    if (!dataFile.is_open())
+        throw std::runtime_error("Cannot open datafile"); 
+
+    std::fstream dataFileFL(datafilefl, std::ios::binary | std::ios::in | std::ios::out);
+    if (!dataFileFL.is_open())
+        throw std::runtime_error("Cannot open data_fl file"); 
+
+    dataFile.seekg(0, std::ios::beg);
+    dataFile.read((char*) &metadata, sizeof(metadata));
+
+    int sz{};
+    for (int i = 0; i < capacity(dataFileFL); ++i) {
+        Bucket<TR> bucket(metadata.block_factor);
+        int next_d{};
+        
+        //                 header
+        dataFileFL.seekg(sizeof(int) * (i + 1), std::ios::beg);
+        dataFileFL.read((char*) &next_d, sizeof(next_d));
+        if (next_d == 0) {
+            dataFile.seekg((i * bucket.size_of()) + sizeof(metadata), std::ios::beg);
+            bucket.read(dataFile);
+            sz += bucket.metadata.count;
+        }
+    }
+    dataFile.close();
+    dataFileFL.close();
+    return sz;
 }
 
 template <typename TR, typename TK>

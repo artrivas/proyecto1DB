@@ -16,19 +16,9 @@ const char DATA_FILE = 'D';
 const char AUX_FILE = 'A';
 
 // const int K = 70; 
-template <typename Record>
-const int K = getPageSize() / sizeof(RecordBlock); 
+// const int K = getPageSize() / sizeof(RecordBlock); 
+const int K = 13; 
 
-template <typename Record>
-struct RecordBlock {
-    long next;
-    char next_file;
-    Record record;
-
-    RecordBlock() : RecordBlock(-1, DATA_FILE, Record()) {}
-    RecordBlock(long _next, char _next_file, Record _record)
-            : next(_next), next_file(_next_file), record(std::move(_record)) {}
-};
 
 template <typename Record>
 class SequentialFile{
@@ -36,6 +26,16 @@ private:
     string datafile_name;
     string auxfile_name;
     int numAuxEntries = 0;
+
+    struct RecordBlock {
+        long next;
+        char next_file;
+        Record record;
+
+        RecordBlock() : RecordBlock(-1, DATA_FILE, Record()) {}
+        RecordBlock(long _next, char _next_file, Record _record)
+                : next(_next), next_file(_next_file), record(std::move(_record)) {}
+    };
 
     void rebuild() {
 

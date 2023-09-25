@@ -8,8 +8,11 @@
 
 
 int main() {
-    Menu menu;
-    DataManager<Player, int> dataManager;
+    Parser parser;
+    DataManager<Player, int> data_manager;
+    Menu<Player, int> menu(data_manager, parser);
+
+    menu.display_main();
 
     return 0;
 }
