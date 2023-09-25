@@ -82,12 +82,16 @@ Extensible Hashing es una técnica de organización de datos que se utiliza para
 ![image](https://github.com/artrivas/proyecto1DB/assets/87825436/1cde3731-62ba-4a11-a005-b63601966188)
 
 ### 3.1.1. Inserción
-![Grafico 1](graficos/grafico1.png)
-![Grafico 2](graficos/grafico2.png)
+
+<img src="graficos/grafico1.png" alt="GRAFICO 1" width="200" height="200">
+<img src="graficos/grafico2.png" alt="GRAFICO 2" width="200" height="200">
+
 ### 3.1.2. Búsqueda
-![Grafico 3](graficos/grafico3.png)
-![Grafico 4](graficos/grafico4.png)
+
+<img src="graficos/grafico3.png" alt="GRAFICO 3" width="200" height="200">
+<img src="graficos/grafico4.png" alt="GRAFICO 4" width="200" height="200">
 ## 4. Interfaz gráfica
+La interfaz fue desarrollado en el terminal de la consola.
 
 ## 5. Video Demostrativo
 [Video Demostrativo](https://drive.google.com/drive/folders/1Dkh2F_ApZAGWXzrcB1O12xspLON71-JI?usp=sharing)
@@ -107,7 +111,7 @@ Adquirimos habilidades prácticas en la gestión de archivos secuenciales, lo qu
 Aprendimos a organizar datos de manera eficiente en disco y a realizar operaciones de lectura y escritura en archivos secuenciales.
 * Consideraciones de Rendimiento y Eficiencia:
 Reconocimos la importancia de evaluar el rendimiento y la eficiencia de cada estructura de datos en diferentes situaciones.
-Comparamos operaciones de inserción, búsqueda y eliminación en árboles AVL y hashing extensible.
+Comparamos operaciones de inserción, búsqueda y eliminación en árboles AVL, hashing extensible , Sequential File.
 ## 7. Referencias
 * Estructura de datos : Archivos ( files ). (s. f.). https://www.fceia.unr.edu.ar/estruc/2006/fileintr.htm
 * IBM documentation. (s. f.). https://www.ibm.com/docs/es/iis/11.5?topic=sets-structure-data
