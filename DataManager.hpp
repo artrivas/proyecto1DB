@@ -3,7 +3,7 @@
 #include <vector>
 #include "sequential/src/SequentialFile.hpp"
 #include "exthash/src/ExtHashFile.hpp"
-#include "avl/src/AVLFile.hpp"
+#include "avl/src/AVL.h"
 
 using namespace std;
 

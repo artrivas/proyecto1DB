@@ -1,5 +1,6 @@
 
 #include <cstring>
+
 #include "Player.hpp"
 
 Player::Player() {
@@ -39,6 +40,28 @@ Player::Player(long p_id, const char* p_fname, const char* p_lname, const char* 
     draft_year = p_draft_year;
     draft_round = p_draft_round;
     draft_number = p_draft_number;
+}
+
+Player::Player(std::vector<std::string> data) {
+    id = stoi(data[0]);
+    strncpy(fname, data[1].c_str(), sizeof(fname)-1);
+    fname[sizeof(fname)-1] = '\0';
+    strncpy(lname, data[2].c_str(), sizeof(lname)-1);
+    lname[sizeof(lname)-1] = '\0';
+    strncpy(position, data[3].c_str(), sizeof(position)-1);
+    position[sizeof(position)-1] = '\0';
+    strncpy(height, data[4].c_str(), sizeof(height)-1);
+    height[sizeof(height)-1] = '\0';
+    weight = stoi(data[5]);
+    strncpy(birthday, data[6].c_str(), sizeof(birthday)-1);
+    birthday[sizeof(birthday)-1] = '\0';
+    strncpy(country, data[7].c_str(), sizeof(country)-1);
+    country[sizeof(country)-1] = '\0';
+    strncpy(school, data[8].c_str(), sizeof(school)-1);
+    school[sizeof(school)-1] = '\0';
+    draft_year = stoi(data[9]);
+    draft_round = stoi(data[10]);
+    draft_number = stoi(data[11]);
 }
 
 void Player::print() {

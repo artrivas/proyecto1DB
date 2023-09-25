@@ -1,56 +1,112 @@
+
 #include <iostream>
 #include <string>
-#include "sequential/src/SequentialFile.hpp"
-#include "exthash/src/ExtHashFile.hpp"
-#include "avl/src/AVLFile.hpp"
+#include <map>
+#include <vector>
+#include <sstream>
 
-using namespace std;
-
-template<T>
-
-class DataManager {
+class Parser {
 private:
-    AVLFile<t,1> avlIndex;
-    HashTable hashIndex;
-    SequentialFile sequentialIndex;
+    std::string command;
+    std::vector<std::string> tokens;
 
 public:
-    DataManager(const string& avlFileName, const string& hashFileName, const string& sequentialFileName) {
-        // Inicializar las instancias de los índices con los nombres de archivos proporcionados
-        avlIndex.loadFromFile(avlFileName);
-        hashIndex.loadFromFile(hashFileName);
-        sequentialIndex.loadFromFile(sequentialFileName);
+    Parser(std::string sqlStatement) {
+        command = sqlStatement;
+        tokenize();
     }
 
-    // Funciones para realizar operaciones en los índices
-    void insertAVL(const string& key, const string& value) {
-        avlIndex.insert(key, value);
+    void tokenize() {
+        std::istringstream iss(command);
+        std::string token;
+        while (iss >> token) {
+            tokens.push_back(token);
+        }
     }
 
-    string searchAVL(const string& key) {
-        return avlIndex.search(key);
+    std::vector<std::string> getFields(const std::string& comando) {
+        std::vector<std::string> valores;
+
+        // Encontrar la parte entre paréntesis
+        size_t inicio = comando.find('(');
+        size_t fin = comando.find(')');
+        if (inicio != std::string::npos && fin != std::string::npos && fin > inicio) {
+            std::string contenido = comando.substr(inicio + 1, fin - inicio - 1);
+
+            // Leer valores separados por comas
+            std::istringstream iss(contenido);
+            std::string valor;
+            while (std::getline(iss, valor, ',')) {
+                // Eliminar espacios en blanco al inicio y al final
+                valor = valor.substr(valor.find_first_not_of(" "), valor.find_last_not_of(" ") + 1);
+                
+                // Si el valor es un string, eliminar comillas simples
+                if (valor.front() == '\'' && valor.back() == '\'') {
+                    valor = valor.substr(1, valor.length() - 2);
+                }
+
+                valores.push_back(valor);
+            }
+        }
+
+        return valores;
     }
 
-    void insertHash(const string& key, const string& value) {
-        hashIndex.insert(key, value);
+    std::string getValue(const std::string& texto) {
+        size_t inicio = texto.find('(');
+
+        if (inicio != std::string::npos && inicio > 0) 
+            return texto.substr(0, inicio);
+        return "";
     }
 
-    string searchHash(const string& key) {
-        return hashIndex.search(key);
+    std::map<std::string, std::string> getInstruccion() {
+        std::map<std::string, std::string> instruccions;
+        
+        if (tokens[0] == "create" && tokens[1] == "table") {  
+            instruccions["connector"] = "create";
+            instruccions["tableName"] = tokens[2];
+            instruccions["filePath"] = tokens[5];
+            instruccions["indexInfo"] = tokens[8];
+            instruccions["fieldIndex"] = getFields(tokens[8])[0];
+            instruccions["typeIndex"] = getValue(tokens[8]);
+            
+        }
+        else if (tokens[0] == "select" && tokens[1] == "*") {
+            instruccions["connector"] = "select";
+            instruccions["tableName"] = tokens[3];
+            instruccions["fieldCondition"] = tokens[5];
+        
+        }
+        else if (tokens[0] == "select" && tokens[1] == "*" && tokens[6] == "between") {
+            instruccions["connector"] = "select";
+            instruccions["tableName"] = tokens[3];
+            instruccions["lowerBound"] = tokens[7];
+            instruccions["upperBound"] = tokens[9];
+          
+        }
+
+        else if (tokens[0] == "insert" && tokens[1] == "into") {
+            instruccions["connector"] = "insert";
+            instruccions["tableName"] = tokens[2];
+            instruccions["fields"] = command;
+        }
+        else if (tokens[0] == "delete" && tokens[1] == "from") {
+            instruccions["connector"] = "create";
+            instruccions["tableName"] = tokens[2];
+            instruccions["field"] = tokens[4];
+            instruccions["value"] = tokens[6];
+        }
+        else {
+            std::cout << "Comando no soportado o no válido" << std::endl;
+        }
+        return instruccions;
     }
 
-    void insertSequential(const string& key, const string& value) {
-        sequentialIndex.insert(key, value);
-    }
 
-    string searchSequential(const string& key) {
-        return sequentialIndex.search(key);
-    }
+    // ----------------------------------------------------------------
+    void createHash(std::string filePath, std::string field_index) {
+        
 
-    void saveIndexes() {
-        // Guardar los índices en los archivos correspondientes
-        avlIndex.saveToFile();
-        hashIndex.saveToFile();
-        sequentialIndex.saveToFile();
     }
 };

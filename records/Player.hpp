@@ -2,6 +2,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 struct Player {
     long id;
@@ -21,6 +22,7 @@ struct Player {
     Player(long p_id, const char* p_fname, const char* p_lname, const char* p_position,
        const char* p_height, int p_weight, const char* p_birthday, const char* p_country,
        const char* p_school, int p_draft_year, int p_draft_round, int p_draft_number);
+    Player(std::vector<std::string> data);
     void print();
     long get_key();
     friend std::istream& operator>>(std::istream& is, Player& player);  
