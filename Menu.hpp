@@ -2,6 +2,8 @@
 #pragma once
 
 #include <iostream>
+#include <cstdlib>
+#include <conio.h>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -18,215 +20,189 @@ using namespace std;
 
 template <typename TR, typename TK>
 class Menu {
-    map<string, string> indices_name;
+private:
+    
+    map<string, vector<string>> indexes_name;
     DataManager<TR, TK>& data_manager;
     Parser& parser;
 
 public:
+
     Menu(DataManager<TR, TK>& data_manager);
 
     void display();
-
-    void create(string datafile, string index, string field_index);
-    void insert(string tablename, string data);
-    void select(string tablename);
-    void remove(string datafile, string index, string field_index);
-
     void input_statement();
-    bool execute(vector<string> tokens);
-    bool evaluate(map<string, string> instruccions);
+    void execute(map<string, string>& instructions);
 
+    void create(map<string, string>& instructions);
+    void insert(map<string, string>& instructions);
+    void select(map<string, string>& instructions);
+    void remove(map<string, string>& instructions);
 
+    std::vector<std::string> getValues(const std::string& input);
 
-    template <typename TR,typename TK>
-
-    void calldatamanager (DataManager<TR,TK>& datamanager,vector<string> instrucciones,string index){
-        if (instrucciones[0] == "SELECT" ){
-            select(datamanager,index);}
-        else if(instrucciones[0] == "CREATE"){
-            create(datamanager,index);}
-        else if(instrucciones[0] == "INSERT"){
-            insert(datamanager,index);}
-        else if(instrucciones[0] == "DELETE"){
-            remove(datamanager,index);}
-    }
-
-    bool iscorrect(string statement ){
-        return Parser::iscorrect(statement);
-    }
-
-
-
-
+    void load(string file);
+    void clear();
+    void pause(); 
 };
 
-// ----------------------------------------------------------------------------------------
+// Implementation of Menu
+
 template <typename TR, typename TK>
-Menu<TR, TK>::Menu(DataManager<TR, TK>& datamanager) : datamanager(datamanager) {}
+Menu<TR, TK>::Menu(DataManager<TR, TK>& datamanager) : data_manager(datamanager) {}
 
 template <typename TR, typename TK>
 void Menu<TR, TK>::display() {
-    cout << "BIENVENIDOS A MI SGBD\n\n";
-    cout << ">> Inserte su sentencia SQL: \n";
+    cout << "\n---------------------------------------------\n";
+    cout << "----------- Bienvenido a MySGGB -------------\n";
+    cout << "---------------------------------------------\n";
+    cout << "\n:: Inserte su sentencia SQL: \n\n>> ";
     input_statement();
-}
-
-template <typename TR, typename TK>
-void Menu<TR, TK>::create(string datafile, string index, string field_index) {
-    if (index == "Hash") 
-        datamanager.createhashindice(datafile, field_index);
-    else if (index == "avl") 
-        datamanager.createavlindice(datafile, field_index);
-    else if (index == "sequential") 
-        datamanager.create_sequential_indice(datafile, field_index);
-}
-
-template <typename TR, typename TK>
-void Menu<TR, TK>::insert(string tablename, string data) {
-    string index = indices_name[tablename];
-    if (index == "hash") {
-        auto& ehash = data_manager.hasindices[0];
-        std::vector<std::string> fields = getFields(data);
-        TR record(fields); 
-        ehash.add(record);
-    }
-    else if (index == "avl") {
-        auto& avlf = data_manager.avlindices[0];
-        std::vector<std::string> fields = getFields(data);
-        TR record(fields); 
-        avlf.insert(record);
-    } 
-    else if (index == "sequential") {
-        auto& seqf = data_manager.sequentialindices[0];
-        std::vector<std::string> fields = getFields(data);
-        TR record(fields); 
-        seqf.insert(record);
-    }
-}
-
-template <typename TR, typename TK>
-void Menu<TR, TK>::select(string datafile) {
-    string index = indices_name["datafile"];
-    if (index == "hash") {
-        auto& ehash = data_manager.hasindices[0];
-        e.hash.print();    
-    }
-    else if (index == "avl") {
-        auto& ehash = data_manager.hasindices[0];
-
-    }
-    else if (index == "sequential") {
-
-    }
-    
-
-
-
-}
-
-template <typename TR, typename TK>
-void Menu<TR, TK>::remove() {
-
 }
 
 template <typename TR, typename TK>
 void Menu<TR, TK>::input_statement(){
     string statement;
     std::getline(std::cin, statement);
-   
-    if (statement.size() == 0)
+    pause();
+    clear();
+    if (statement.size() == 0) {
+        cout << "Sentencia invalida\n";
         return;
-    
-    auto instruccion = parser.getInstruccion(statement);
-
-    if (instruccion.is_empty()) 
-        cout << "Error\n";
+    }
+    auto instruction = parser.getInstruccion(statement);
+    if (instruction.is_empty()) 
+        cout << "Sentencia invalida o no soportada\n";
     else {
-        evaluate(instruccion);
+        execute(instruction);
         cout << "Ejecucion exitosa\n";
     }
 }
 
-
-    //calldatamanager(datamanager,instrucciones,indicesname[instrucciones.tablename]);
-
-
-
-
-// ----------------------------------------------------------------
+template <typename TR, typename TK>
+void Menu<TR, TK>::execute(map<string, string>& instructions) {
+    if (instruccions["operation"] == "create") 
+        create(instructions);
+    else if (instruccions["operation"] == "insert") 
+        insert(instructions);
+    else if (instruccions["operation"] == "select") 
+        select(instructions);
+    else if (instructions["operation"] == "delete")
+        remove(instructions);
+}
 
 template <typename TR, typename TK>
-bool Menu<TR, TK>::evaluate(map<string, string> instruccions) {   
-    if (instruccions["connector"] == "create") {  
-        create(instruccions["filePath"], instruccions["typeIndex"], instruccions["typeIndex"]);
-        indices_name["filePath"] = instruccions["typeIndex"];
-    } 
-    else if (instruccions["connector"] == "select") {
-        select(instruccions["tableName"]);
-    } 
-    else if (instruccions["connector"] == "insert") {
-        insert(instruccions["tableName"], instruccions["fields"]);
-    } 
-    else if (instruccions["connector"] == "delete") {
-        remove(instruccions["filePath"], instruccions["typeIndex"], instruccions["typeIndex"]);
-
-        
+void Menu<TR, TK>::create(map<string, string>& instructions) {
+    if (instructions["type_index"] == "hash") {
+        data_manager.create_hash_index(instructions["table_name"], instructions["type_index"]);
+        indexes_name["table_name"].push_back(instructions["type_index"]);
     }
+    else if (instructions["type_index"] == "avl") {
+        data_manager.create_avl_index(index_filename, heap_filename); // completar
+        indexes_name["table_name"].push_back(instructions["type_index"]);
+    }
+    else if (instructions["type_index"] == "sequential") { 
+        data_manager.create_seq_index(datafile, auxfile); // completar
+        indexes_name["table_name"].push_back(instructions["type_index"]);
+    }
+}
 
-        std::string tableName = tokens[2];
-        std::string filePath = tokens[5]; 
-        std::string indexInfo = tokens[8]; 
-
-        std::vector<std::string> field_index = getFields(indexInfo);
-        std::string type_index = getValue(indexInfo);
-
-        if (type_index == "hash") {
-            createHash(filePath, field_index);
-
-        } else if (type_index == "avl") {
-            createAvl(filePath, field_index);
-
-        } else if (type_index == "sequential") {
-            createSequential(filePath, field_index);
+template <typename TR, typename TK>
+void Menu<TR, TK>::insert(map<string, string>& instructions) {
+    std::vector<std::string> indexes = indexes_name["table_name"];
+    std::vector<std::string> fields = getValues(instructions["values"]);
+    TR record(fields); 
+    for (auto& index : indexes) {
+        if (index == "hash") {
+            data_manager.insert_hash_index(record);
         }
-
+        else if (index == "avl") {
+            data_manager.insert_avl_index(record);
+        } 
+        else if (index == "sequential") {
+            data_manager.insert_seq_index(record);
+        }
     }
-    else if (tokens[0] == "select" && tokens[1] == "*") {
-        // Implementar lógica para select all
-        std::string tableName = tokens[3];
-        std::string condition = tokens[5];
-    }
-    else if (tokens[0] == "select" && tokens[1] == "*" && tokens[6] == "between") {
-        // Implementar lógica para select con BETWEEN
-        std::string tableName = tokens[3];
-        std::string lowerBound = tokens[7];
-        std::string upperBound = tokens[9];
-    }
-    else if (tokens[0] == "insert" && tokens[1] == "into") {
-        // Implementar lógica para insertar
-        std::string tableName = tokens[2];
-        auto fields = getFields(command);
-
-    }
-    else if (tokens[0] == "delete" && tokens[1] == "from") {
-        // Implementar lógica para eliminar
-        std::string tableName = tokens[2];
-        std::string field = tokens[4];
-        std::string value = tokens[6];
-    }
-    else {
-        std::cout << "Comando no soportado o no válido" << std::endl;
-        return false;
-    }
-    return true;
 }
 
-
-// ----------------------------------------------------------------
-void createHash(std::string filePath, std::string field_index) {
-    
-
+template <typename TR, typename TK>
+void Menu<TR, TK>::select(map<string, string>& instructions) {
+    std::vector<std::string> indexes = indexes_name["table_name"];
+    for (auto& index : indexes) {
+        if (index == "hash") {
+            if (instructions["operator"] == "=")
+                data_manager.select_hash_index(stoi(instructions["value"]));
+            return;
+        }
+        else if (index == "avl") {
+            if (instructions["operator"] == "=")
+                data_manager.select_avl_index(stoi(instructions["value"]));
+            else if (instructions["operator"] == "between") 
+                data_manager.select_range_avl_index(stoi(instructions["lower_limit"]), stoi(instructions["upper_limit"]));
+            return;
+        } 
+        else if (index == "sequential") {
+            if (instructions["operator"] == "=")
+                data_manager.select_seq_index(stoi(instructions["value"]));
+            else if (instructions["operator"] == "between") 
+                data_manager.select_range_seq_index(stoi(instructions["lower_limit"]), stoi(instructions["upper_limit"]));
+            return;
+        }
+    }
 }
 
+template <typename TR, typename TK>
+void Menu<TR, TK>::remove(map<string, string>& instructions) {
+    std::vector<std::string> indexes = indexes_name["table_name"];
+    for (auto& index : indexes) {
+        if (index == "hash") {
+            data_manager.remove_hash_index(stoi(instructions["value"]));
+        }
+        else if (index == "avl") {
+            data_manager.remove_avl_index(stoi(instructions["value"]));
+        } 
+        else if (index == "sequential") {
+            data_manager.remove_seq_index(stoi(instructions["value"]));
+        }
+    }
+}
 
-        auto fields = getFields(command);
+template <typename TR, typename TK>
+std::vector<std::string> Menu<TR, TK>::getValues(const std::string& input) {
+    std::vector<std::string> fields;
+
+    size_t init = input.find('(');
+    size_t end = input.find(')');
+    if (init != std::string::npos && end != std::string::npos && end > init) {
+        std::string content = input.substr(init + 1, end - init - 1);
+
+        // Read values separated by commas
+        std::istringstream iss(content);
+        std::string value;
+        while (std::getline(iss, value, ',')) {
+            // Remove leading and trailing whitespace
+            value = value.substr(value.find_first_not_of(" "), value.find_last_not_of(" ") + 1);
+            
+            // If the value is a string, remove single quotes
+            if (value.front() == '\'' && value.back() == '\'') {
+                value = value.substr(1, value.length() - 2);
+            }
+
+            fields.push_back(value);
+        }
+    }
+
+    return fields;
+}
+
+template <typename TR, typename TK>
+void Menu<TR, TK>::clear() {
+    system("cls");
+}
+
+template <typename TR, typename TK>
+void Menu<TR, TK>::pause() {
+    std::cout << "Presiona Enter para continuar...";
+    getch();
+    std::cout << "\n\n";
+}
