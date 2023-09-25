@@ -155,8 +155,17 @@ void Menu<TR, TK>::create(map<string, string>& instructions) {
         indexes_name["table_name"].push_back(instructions["type_index"]);
     }
     else if (instructions["type_index"] == "avl") {
+<<<<<<< HEAD
         // data_manager.create_avl_index(index_filename, heap_filename); // completar
         // indexes_name["table_name"].push_back(instructions["type_index"]);
+=======
+        string heap_filename = "heapfile.bin";
+        string index_filename = "index";
+        index_filename+=["table_name"];
+        index_filename+=".bin";
+        data_manager.create_avl_index(index_filename, heap_filename,instructions["type_index"]); // completar
+        indexes_name["table_name"].push_back(instructions["type_index"]);
+>>>>>>> 90e8855e78ace9a39442f796af7cfaed70079d5f
     }
     else if (instructions["type_index"] == "sequential") { 
         // data_manager.create_seq_index(datafile, auxfile); // completar

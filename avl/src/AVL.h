@@ -14,7 +14,7 @@
 //#include "records/Record.h"
 #include<functional>
 using namespace std;
-template<typename KeyType,int attrpos>
+template<typename KeyType>
 class AVLFile
 {
     string indexfilename;
@@ -25,9 +25,10 @@ class AVLFile
     vector<long> prefix_sum;
     function<int(KeyType,KeyType)> compare; //Lambda for comparing
     bool is_primary_key{};
+    int attrpos{};
 
 public:
-    explicit AVLFile(const string & indexfilename, const string & heapfilename,function<int(KeyType,KeyType)> compare_function,bool pk){
+    explicit AVLFile(const string & indexfilename, const string & heapfilename,function<int(KeyType,KeyType)> compare_function,bool pk, int pos){
         this->pos_root = 1;
         this->indexfilename = indexfilename;
         this->heapfilename = heapfilename;
@@ -38,6 +39,7 @@ public:
         this->prefix_sum.resize((long)a.get_prefix().size());
         this->prefix_sum = a.get_prefix();
         this->is_primary_key = pk;
+        this->attrpos = pos;
     }
     void setup_files(){
         this->readfile.close();
