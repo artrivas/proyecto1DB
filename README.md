@@ -61,8 +61,8 @@ Se acota las búsquedas recursivas por medio de ambos limitadores, luego se proc
 
 ### Sequential File:
 Un archivo secuencial es un archivo de datos donde los registros o entradas se almacenan de manera consecutiva, uno detrás del otro, en un solo flujo o secuencia de datos. Cada registro en el archivo tiene una longitud fija o variable. Lamentablemente debido a su naturaleza secuencial, el acceso a registros específicos dentro de un archivo secuencial puede ser lento, especialmente si se necesita acceder a un registro cercano al final del archivo.
-
 ![image](https://github.com/artrivas/proyecto1DB/assets/87825436/c27ab987-089a-4418-b1d4-0ff72e27d851)
+
 #### Insercion
 Si el archivo auxiliar (auxfile) llega a tener una cantidad k de registros, es esencial llevar a cabo un rebuild(). De no ser así, se inicia verificando el último SequentialBlock del datafile. Si la llave del registro actual es menor que la del registro a insertar, este último se añade al final del datafile, y se actualizan los punteros correspondientes. Si no es el caso, se procede a ubicar el espacio adecuado entre el datafile y el auxfile. El nuevo registro se anexa al final del auxfile y, si ya existe un registro con la misma llave, se retorna False. En cuanto a su complejidad, la inserción puede demandar un tiempo promedio de O(n/2).
 #### Búsqueda 
@@ -77,18 +77,18 @@ Para eliminar un registro, se busca la llave específica navegando tanto el data
 
 ### Extendible Hashing 
 Extensible Hashing es una técnica de organización de datos que se utiliza para indexar y buscar información en una estructura de datos jerárquica. Se basa en una función de hash que asigna datos a buckets, y cada bucket contiene un conjunto de registros relacionados. La característica distintiva del Extensible Hashing es que permite que el número de buckets aumente o disminuya dinámicamente a medida que se agregan o eliminan registros, lo que lo hace eficiente y escalable.
-
 ![image](https://github.com/artrivas/proyecto1DB/assets/87825436/1cde3731-62ba-4a11-a005-b63601966188)
-
 ### 3.1.1. Inserción
-
+<div align="center">
 <img src="graficos/grafico1.png" alt="GRAFICO 1" width="500" height="500">
 <img src="graficos/grafico2.png" alt="GRAFICO 2" width="500" height="500">
+</div>
 
 ### 3.1.2. Búsqueda
-
+<div align="center">
 <img src="graficos/grafico3.png" alt="GRAFICO 3" width="500" height="500">
 <img src="graficos/grafico4.png" alt="GRAFICO 4" width="500" height="500">
+</div>
 
 ## 4. Interfaz gráfica
 La interfaz fue desarrollado en el terminal de la consola.
