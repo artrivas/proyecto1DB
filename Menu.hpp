@@ -97,7 +97,11 @@ void Menu<TR, TK>::create(map<string, string>& instructions) {
         indexes_name["table_name"].push_back(instructions["type_index"]);
     }
     else if (instructions["type_index"] == "avl") {
-        data_manager.create_avl_index(index_filename, heap_filename); // completar
+        string heap_filename = "heapfile.bin";
+        string index_filename = "index";
+        index_filename+=["table_name"];
+        index_filename+=".bin";
+        data_manager.create_avl_index(index_filename, heap_filename,instructions["type_index"]); // completar
         indexes_name["table_name"].push_back(instructions["type_index"]);
     }
     else if (instructions["type_index"] == "sequential") { 
