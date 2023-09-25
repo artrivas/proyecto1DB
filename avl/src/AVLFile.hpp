@@ -1,14 +1,15 @@
-//
-// Created by artrivas on 9/12/23.
-//
 
-#ifndef UNTITLED_AVL_H
-#define UNTITLED_AVL_H
+#pragma once
 #include "AVLNode.hpp"
 #include <iostream>
-#include<fstream>
-#include<vector>
-#include "Record.hpp"
+#include <fstream>
+#include <vector>
+#include <stdio.h>
+#include <string.h>
+#include "./records/Player.hpp"
+
+using Record = Player;
+
 using namespace std;
 template<typename KeyType,int attrpos>
 class AVLFile
@@ -54,6 +55,9 @@ public:
     }
 
     vector<Record> find(KeyType & key){
+        AVLNode<KeyType> root_node = get_node(this->pos_root);
+        if(root_node.file_position == -1)
+            return vector<Record>{};
         vector<AVLNode<KeyType>> arr = find(pos_root,key);
         ifstream file(heapfilename,ios::binary);
         vector<Record> ans;
@@ -65,6 +69,86 @@ public:
         }
         file.close();
         return ans;
+    }
+
+    bool remove(KeyType & key) {
+        AVLNode<KeyType> root = get_node(this->pos_root);
+        long ans = _remove(key,root,this->pos_root);
+        if(ans == -2) return false;
+        return true;
+    }
+
+
+    long find_succesor(AVLNode<KeyType> cmp_node,long pos){
+        if(cmp_node.left == -1)
+            return pos;
+        AVLNode<KeyType> left_node = get_node(cmp_node.left);
+        find_succesor(left_node,cmp_node.left);
+    }
+
+    long get_balance(long pos){
+        AVLNode<KeyType> node = get_node(pos);
+        AVLNode<KeyType> left_node = get_node(node.left);
+        AVLNode<KeyType> right_node = get_node(node.right);
+        return left_node.height-right_node.height;
+    }
+
+    //Eliminar un nodo es seteando su valor a -1
+    long _remove(KeyType key,AVLNode<KeyType> cmp_node,long pos){
+        if(cmp_node.file_position == -1) return -2;
+        int result1 = strcmp(cmp_node.key,key);
+        if(result1 > 0){
+            AVLNode<KeyType> left_node = get_node(cmp_node.left);
+            int result2 = strcmp(left_node.key,key);
+            if(!result2){
+                cmp_node.left = _remove(key,left_node,cmp_node.left);
+                insert_node_by_pos(cmp_node,pos);
+            }else{
+                _remove(key,left_node,cmp_node.left);
+            }
+        }else if(result1 < 0){
+            AVLNode<KeyType> right_node = get_node(cmp_node.right);
+            int result3 = strcmp(right_node.key,key);
+            if(!result3){
+                cmp_node.right = _remove(key,right_node,cmp_node.right);
+                insert_node_by_pos(cmp_node,pos);
+            }else{
+                _remove(key,right_node,cmp_node.right);
+            }
+        }else{
+            if(cmp_node.left == -1 || cmp_node.right == -1){ //El nodo tiene 1 hijo o es nodo hoja
+                cmp_node.file_position = -1;
+                insert_node_by_pos(cmp_node,pos);
+                return (cmp_node.left == -1 ? cmp_node.right : cmp_node.left); //Si cmp_node.right es -1, no tiene hijos |
+            }else{ // Nodo con 2 hijos
+                AVLNode<KeyType> right_subtree = get_node(cmp_node.right);
+                long pos_succesor = find_succesor(right_subtree,cmp_node.right);
+                AVLNode<KeyType> succesor = get_node(pos_succesor);
+                memcpy((char*) & cmp_node.key, (char*) & succesor.key, sizeof(cmp_node.key));
+                cmp_node.right = _remove(succesor.key,right_subtree,cmp_node.right);
+                insert_node_by_pos(cmp_node,pos);
+            }
+        }
+        //Actualizar alturas
+        update_height(cmp_node,pos);
+
+        long balance = get_balance(pos);
+
+        if (balance > 1 && get_balance(cmp_node.left) >= 0) // Left Left
+            right_rotation(cmp_node,pos);
+        else if (balance > 1 && get_balance(cmp_node.left) < 0){ // Left Right
+            AVLNode<KeyType> left_node = get_node(cmp_node.left);
+            left_rotation(left_node,cmp_node.left);
+            right_rotation(cmp_node,pos);
+        }else if (balance < -1 && get_balance(cmp_node.right) <= 0) //Right Right
+            left_rotation(cmp_node,pos);
+        else if (balance < -1 && get_balance(cmp_node.right) > 0){// Right Left
+            AVLNode<KeyType> right_node = get_node(cmp_node.right);
+            right_rotation(right_node,cmp_node.right);
+            left_rotation(cmp_node,pos);
+        }
+
+        return pos;
     }
 
     vector<Record> rangeSearch(KeyType & bkey, KeyType & ekey){
@@ -154,7 +238,11 @@ private:
         writefile.seekp((y_pos-1)*sizeof(AVLNode<KeyType>));
         writefile.write((char*) &node,sizeof(node));
     }
-
+    void insert_node_by_pos(AVLNode<KeyType> & node, long position){
+        setup_files();
+        writefile.seekp((position-1)*sizeof(AVLNode<KeyType>));
+        writefile.write((char*) &node,sizeof(node));
+    }
     void right_rotation(AVLNode<KeyType> & node, long position){
         AVLNode<KeyType> x = get_node(node.left);
         AVLNode<KeyType> T2 = get_node(x.right);
@@ -207,24 +295,6 @@ private:
         writefile.write((char*) &node,sizeof(node));
     }
 
-    void balance_tree(AVLNode<KeyType> & cmp_node, AVLNode<KeyType> & node,long position){
-        AVLNode<KeyType> left_node = get_node(cmp_node.left);
-        AVLNode<KeyType> right_node = get_node(cmp_node.right);
-        int balancing_factor = left_node.height - right_node.height;
-        int resultleft = strcmp(node.key,left_node.key);
-        int resultright = strcmp(node.key,right_node.key);
-        if(balancing_factor > 1 && resultleft < 0){//left left
-            right_rotation(cmp_node,position);
-        }else if(balancing_factor < -1 &&  0 < resultright){ //right right
-            left_rotation(cmp_node,position);
-        }else if(balancing_factor > 1 && 0 < resultleft){ //Existe un nodo a la izquierda
-            left_rotation(left_node, cmp_node.left);
-            right_rotation(cmp_node,position);
-        }else if(balancing_factor < -1 && resultright < 0){
-            right_rotation(right_node,cmp_node.right);
-            left_rotation(cmp_node,position);
-        }
-    }
 
     void _add(long pos_node,AVLNode<KeyType> & node){
         readfile.seekg((pos_node-1)*sizeof(AVLNode<KeyType>));
@@ -252,7 +322,23 @@ private:
             return;
         }
         update_height(cmp_node,pos_node);
-        balance_tree(cmp_node,node,pos_node);
+        //Balance tree
+        AVLNode<KeyType> left_node = get_node(cmp_node.left);
+        AVLNode<KeyType> right_node = get_node(cmp_node.right);
+        int balancing_factor = left_node.height - right_node.height;
+        int resultleft = strcmp(node.key,left_node.key);
+        int resultright = strcmp(node.key,right_node.key);
+        if(balancing_factor > 1 && resultleft < 0){//left left
+            right_rotation(cmp_node,pos_node);
+        }else if(balancing_factor < -1 &&  0 < resultright){ //right right
+            left_rotation(cmp_node,pos_node);
+        }else if(balancing_factor > 1 && 0 < resultleft){ //Existe un nodo a la izquierda
+            left_rotation(left_node, cmp_node.left);
+            right_rotation(cmp_node,pos_node);
+        }else if(balancing_factor < -1 && resultright < 0){
+            right_rotation(right_node,cmp_node.right);
+            left_rotation(cmp_node,pos_node);
+        }
     }
 
     //El método add inserta el registro despues de la insercion en el heapfile, si es un scanall, no habria necesidad
@@ -263,11 +349,14 @@ private:
             writefile.write((char*) &node, sizeof(AVLNode<KeyType>));
             writefile.flush(); //Ver si funciona sin esto
         }else{ //De lo contrario lo insertamos recursivamente
-            _add(pos_root,node);
+            AVLNode<KeyType> root_node = get_node(this->pos_root);
+            if(root_node.file_position == -1)
+                writefile.write((char*) &node, sizeof(AVLNode<KeyType>));
+            else
+                _add(pos_root,node);
         }
     }
 
 
 };
 
-#endif //UNTITLED_AVL_H
