@@ -5,8 +5,7 @@
 
 * Dimael Rivas [@artrivas](https://github.com/artrivas)
 * Cahuana Condori, Kelvin AndreI [@andrewkc](https://github.com/andrewkc) 
-* Chu
-* Johan Callinapa
+* Johan Callinapa [@fnction](https://github.com/johancalli)
 * Stuart Arteaga Montes [@SDAM26](https://github.com/SDAM26)
 
 ## 1. OBJETIVO
