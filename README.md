@@ -90,6 +90,7 @@ Extensible Hashing es una técnica de organización de datos que se utiliza para
 
 <img src="graficos/grafico3.png" alt="GRAFICO 3" width="500" height="500">
 <img src="graficos/grafico4.png" alt="GRAFICO 4" width="500" height="500">
+
 ## 4. Interfaz gráfica
 La interfaz fue desarrollado en el terminal de la consola.
 
