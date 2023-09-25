@@ -74,7 +74,20 @@ std::map<std::string, std::string> Parser::getInstruction() {
     }
     return instructions;
 }
-      // Remove leading and trailing whitespace
+
+std::vector<std::string> Parser::getFields(const std::string& input) {
+    std::vector<std::string> fields;
+
+    size_t init = input.find('(');
+    size_t end = input.find(')');
+    if (init != std::string::npos && end != std::string::npos && end > init) {
+        std::string content = input.substr(init + 1, end - init - 1);
+
+        // Read values separated by commas
+        std::istringstream iss(content);
+        std::string value;
+        while (std::getline(iss, value, ',')) {
+            // Remove leading and trailing whitespace
             value = value.substr(value.find_first_not_of(" "), value.find_last_not_of(" ") + 1);
             
             // If the value is a string, remove single quotes
@@ -88,19 +101,6 @@ std::map<std::string, std::string> Parser::getInstruction() {
 
     return fields;
 }
-std::vector<std::string> Parser::getFields(const std::string& input) {
-    std::vector<std::string> fields;
-
-    size_t init = input.find('(');
-    size_t end = input.find(')');
-    if (init != std::string::npos && end != std::string::npos && end > init) {
-        std::string content = input.substr(init + 1, end - init - 1);
-
-        // Read values separated by commas
-        std::istringstream iss(content);
-        std::string value;
-        while (std::getline(iss, value, ',')) {
-      
 
 std::string Parser::getTypeIndex(const std::string& input) {
     size_t init = input.find('(');
