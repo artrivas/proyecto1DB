@@ -15,7 +15,7 @@ using namespace std;
 template<typename TR,typename TK>
 class DataManager {
 private:
-    vector<AVLFile<TR, 50>> avl_indexes;
+    vector<AVLFile<TR>> avl_indexes;
     vector<ExtHashFile<TR, TK>> hash_indexes;
     vector<SequentialFile<TR>> seq_indexes;
 
@@ -24,11 +24,19 @@ public:
     DataManager() {};
     
     void create_avl_index(string index_filename, string heap_filename) {
-        //function<int(TK, TK)> compare_function = //;
-        //bool pk = //;
-        //int attrpos = //;
-        //AVLFile<TK, attrpos> avl_index(index_filename, heap_filename, compare_function, pk);
-        //avl_indexes.push_back(avl_index);
+        auto compare_function = [](char a[],char b[]) -> int{
+            if(std::string(a) > std::string(b)){
+                return 1;
+            }else if(std::string(a) < std::string(b)){
+                return -1;
+            }else{
+                return 0;
+            }
+        };
+        bool pk = false;
+        int attrpos = 1;
+        AVLFile<TK> avl_index(index_filename, heap_filename, compare_function, pk,attrpos);
+        avl_indexes.push_back(avl_index);
     }
 
     void create_hash_index(string filename, string index_field) {
