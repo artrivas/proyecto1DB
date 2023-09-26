@@ -4,6 +4,7 @@
 
 #ifndef UNTITLED_AVLNODE_H
 #define UNTITLED_AVLNODE_H
+#include<cstring>
 template<typename KeyType>
 struct AVLNode{
     KeyType key{};

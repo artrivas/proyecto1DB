@@ -10,7 +10,7 @@
 #include<vector>
 #include<cstdio>
 #include<cstring>
-#include "./../../records/Record.h"
+#include "../records/Record.h"
 //#include "records/Record.h"
 #include<functional>
 using namespace std;

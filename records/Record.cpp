@@ -36,31 +36,22 @@ void Record::print_vals() {
     cout << "draft number: " << draft_number << '\n';
 }
 
-void Record::set_vals() {
-    cout << "Player Id: \n";
-    cin >> playerid;
-    cout << "Fist Name: \n";
-    cin >> fname;
-    cout << "Last Name: \n";
-    cin >> lname;
-    cout << "Position: \n";
-    cin >> position;
-    cout << "Height: \n";
-    cin >> height;
-    cout << "Weight: \n";
-    cin >> weight;
-    cout << "Birthday: \n";
-    cin >> birthday;
-    cout << "country: \n";
-    cin >> country;
-    cout << "school: \n";
-    cin >> school;
-    cout << "draft year: \n";
-    cin >> draft_year;
-    cout << "draft round: \n";
-    cin >> draft_round;
-    cout << "draft number: \n";
-    cin >> draft_number;
+void Record::set_vals(long pid,char fn[],char ln[],
+                      char pos[],char h[], int w,
+                      char birth[],char cou[],
+                      char scho[],int dy,int dr,int dn) {
+    playerid = pid;
+    strcpy(fname,fn);
+    strcpy(lname,ln);
+    strcpy(position,pos);
+    strcpy(height,h);
+    weight = w;
+    strcpy(birthday,birth);
+    strcpy(country,cou);
+    strcpy(school,scho);
+    draft_year = dy;
+    draft_round = dr;
+    draft_number = dn;
 }
 
 vector<long> Record::get_prefix(){
