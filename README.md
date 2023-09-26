@@ -592,10 +592,6 @@ TR* ExtHashFile<TR, TK>::find_record(TK key, int& pos_bucket, TR& record, int& p
 }
 
 ```
-  
-
-
-
 #### ELIMINACIÓN 
 ```c++
 template <typename TR, typename TK>
@@ -712,9 +708,6 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
 <img src="graficos/grafico2.png" alt="GRAFICO 2" width="500" height="500">
 </div>
 
-
-
-
 ### 3.1.2. Búsqueda
 <div align="center">
 <img src="graficos/grafico3.png" alt="GRAFICO 3" width="500" height="500">
@@ -724,9 +717,7 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
 ## 4. Interfaz gráfica
 <img src="graficos/interfaz.png" alt="GRAFICO 4" width="500" height="500">
 
-## 5. Video Demostrativo
-[Video Demostrativo](https://drive.google.com/drive/folders/1Dkh2F_ApZAGWXzrcB1O12xspLON71-JI?usp=sharing)
-## 6. Conclusiones
+## 5. Conclusiones
 El uso de estructura de datos en archivos facilita el ingreso a los registros de manera mas eficiente y menos compleja que la forma comun.
 Durante la realización de nuestro proyecto universitario, que involucró el uso de estructuras de datos como los árboles AVL, el hashing extensible y los archivos secuenciales para gestionar datos, hemos adquirido conocimientos valiosos y experiencia en varias áreas:
 * Árboles AVL:
