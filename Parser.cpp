@@ -337,7 +337,13 @@ void Parser::idelete(){
         current = scanner->nextToken();
         i++;
     }
-    cout << tablename << ' ' << atributo << ' ' << key << '\n';
+    string old_key = key;
+    key = "";
+    if(old_key[0] == '\'' && old_key[old_key.size()-1] == '\''){
+        for(int w = 1; w< old_key.size()-1;w++){
+            key+=old_key[w];
+        }
+    }
     string index = tablas[tablename];
     if(index == "avl"){
         if(avl20.find(atributo) != avl20.end()){
