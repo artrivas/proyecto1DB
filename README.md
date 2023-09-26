@@ -393,8 +393,8 @@ template<typename T>
 ### Extendible Hashing 
 Extensible Hashing es una técnica de organización de datos que se utiliza para indexar y buscar información en una estructura de datos jerárquica. Se basa en una función de hash que asigna datos a buckets, y cada bucket contiene un conjunto de registros relacionados. La característica distintiva del Extensible Hashing es que permite que el número de buckets aumente o disminuya dinámicamente a medida que se agregan o eliminan registros, lo que lo hace eficiente y escalable.
 
-![image](https://github.com/artrivas/proyecto1DB/assets/87825436/1cde3731-62ba-4a11-a005-b63601966188)
-
+<!--  ![image](https://github.com/artrivas/proyecto1DB/assets/87825436/1cde3731-62ba-4a11-a005-b63601966188) -->
+![image](https://github.com/artrivas/proyecto1DB/blob/main/graficos/imagen.png)
 #### Inserccion
 ```c++
 template <typename TR, typename TK>
