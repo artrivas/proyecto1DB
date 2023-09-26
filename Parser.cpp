@@ -144,6 +144,7 @@ void Parser::icreate(){
             avl4[atributo] = index;
         }
     }else if(tipoindex == "hash"){
+        
         ;
     }else if(tipoindex == "sequential"){
         ;

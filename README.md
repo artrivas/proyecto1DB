@@ -749,8 +749,28 @@ Aprendimos a organizar datos de manera eficiente en disco y a realizar operacion
 * Consideraciones de Rendimiento y Eficiencia:
 Reconocimos la importancia de evaluar el rendimiento y la eficiencia de cada estructura de datos en diferentes situaciones.
 Comparamos operaciones de inserción, búsqueda y eliminación en árboles AVL, hashing extensible , Sequential File.
-## 7. Referencias
+
+## 7. Observaciones importantes
+
+### Extensible Hash
+
+* No se puedo integrar el Hash Extensible con el Parser, pero se ejecuto un test en la presentación
+(archivo `test.cpp`) para corroborar que la impelementación de dicha estructura funciona.
+* Puede ejecutarlo con este comando: `g++ test.cpp .\records\Player.cpp .\exthash\utils\numToBin.cpp .\exthash\src\IndexEntry.cpp .\utils\g*etPageSize.cpp -o test`
+* Al ejecutarlo se crean los archivo `index/exthash/player_index_eh_id_fl.bin` (archivo que almacena el free list de los índices), 
+`index/exthash/player_index_id.bin` (archivo que almacena la data de los nodos del árbol-trie), `data/player_data_fl.bin` (archivo que almacena el free list de buckets), `data/player_data.bin` (archivo que almacena la data de los buckets que contienen los registros), `bin/player.bin` (archivo que contiene la data en bruto, osea la data del csv a binario).
+![image](https://github.com/artrivas/proyecto1DB/blob/main/graficos/files_hash.png)
+* A continuación el resultado de la ejecución del test, el cual es correcto:
+![image](https://github.com/artrivas/proyecto1DB/blob/main/graficos/execute_test.png)
+* Se implementó la técnica Free List para eliminar los registro o los buckets
+* El free list de los registros en cada buckets, esta contiendo dentro del archivo binario `data/player_bin`, forma parte de la metadata de cada bucket.
+* Puede visualizar el contenido de los archivos binarios con el comando `xdd <ruta del archivo binario>`
+
+### Sequential File
+
+
+## 8. Referencias
+
 * Estructura de datos : Archivos ( files ). (s. f.). https://www.fceia.unr.edu.ar/estruc/2006/fileintr.htm
 * IBM documentation. (s. f.). https://www.ibm.com/docs/es/iis/11.5?topic=sets-structure-data
 * rincondelvago.com. (2017, 30 abril). Encuentra aquí información de Estructura de datos: Acceso en ficheros para tu escuela ¡Entra ya! | Rincón del Vago. https://html.rincondelvago.com/estructura-de-datos_acceso-en-ficheros_1.html
-

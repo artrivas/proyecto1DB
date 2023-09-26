@@ -68,7 +68,8 @@ ExtHashFile<Player, int> create(string table_name, string index_field) {
 }
 
 int main() {
-    ExtHashFile<Player, int> exthash = create("player", "id");
+    // ExtHashFile<Player, int> exthash = create("player", "id"); // solo sirve para crearlo una vez cuando los archivo .bin no existen. No volver a ejecutar esto si los archivo .bin ya exiten
+    ExtHashFile<Player, int> exthash("player", "id");
     cout << exthash.count_records() << std::endl; // 548
     
     Player p1(48, "Juan", "Perez", "Guard", "6'5\"", 220, "1990-05 -15", "USA", "University of XYZ", 2010, 1, 1);
