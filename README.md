@@ -12,7 +12,7 @@
 El objetivo de nuestro proyecto es implementar y comparar tres estructuras de organización de archivos para una recuperación y manipulación eficiente de datos. Las estructuras elegidas son:
 * AVL file
 * Sequential File
-* Hash
+* Extendible Hashing
 
 Nuestras estructuras tendran las siguientes funciones :
 
