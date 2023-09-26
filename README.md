@@ -13,7 +13,9 @@ El objetivo de nuestro proyecto es implementar y comparar tres estructuras de or
 * AVL file
 * Sequential File
 * Hash
+
 Nuestras estructuras tendran las siguientes funciones :
+
 * Buscar: dada una clave, devolveremos los registros respectivos.
 * Búsqueda de rango: dado un rango de claves, devuelve todos los registros cuyas claves estén dentro del rango.
 * Agregar: agrega un nuevo registro al archivo.
