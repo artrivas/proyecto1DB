@@ -704,6 +704,19 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
 
 
 ## Analisis de complejidades
+### Complejidad teórica 
+
+| Operación          | AVL File          | Sequential File   |  Extendible Hash File         |
+|--------------------|-------------------|-------------------|-------------------|
+| Inserción          | O(log n) + O(b)   | O(log n) + O(k)   | O(log n) + O(B)   |
+| Eliminación        | O(log n) + O(b)   | O(log n)           | O(log n) + O(B)   |
+| Búsqueda específica| O(log n)           | O(log n) + O(k)   | O(B)              |
+| Búsqueda por rango | O(log n)           | O(log n) + O(k)   | -                 |
+
+* b = rebalanceo en AVL
+* k = tamaño de archivo auxiliar en Sequential
+* B = tamaño de bucket en Hash
+
 ### 3.1.1. Inserción
 <div align="center">
 <img src="graficos/grafico1.png" alt="GRAFICO 1" width="500" height="500">
