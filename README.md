@@ -708,9 +708,9 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
 
 | Operación          | AVL File          | Sequential File   |  Extendible Hash File         |
 |--------------------|-------------------|-------------------|-------------------|
-| Inserción          | O(log n) + O(b)   | O(log n) + O(k)   | O(log n) + O(B)   |
-| Eliminación        | O(log n) + O(b)   | O(log n)           | O(log n) + O(B)   |
-| Búsqueda específica| O(log n)           | O(log n) + O(k)   | O(B)              |
+| Inserción          | O(log n) + O(b)   | O(log n) + O(k)   | O(log n) + O(1)   |
+| Eliminación        | O(log n) + O(b)   | O(log n)           | O(log n) + O(1)   |
+| Búsqueda específica| O(log n)           | O(log n) + O(k)   | O(log n) + O(B)   |
 | Búsqueda por rango | O(log n)           | O(log n) + O(k)   | -                 |
 
 * b = rebalanceo en AVL
