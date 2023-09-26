@@ -717,7 +717,7 @@ bool ExtHashFile<TR, TK>::remove(TK key) {
 </div>
 
 ## 4. Interfaz gráfica
-<img src="graficos/in2.png" alt="GRAFICO 4" width="500" height="500">
+<img src="graficos/in3.png" alt="GRAFICO 4" width="500" height="500">
 
 ## 5. Conclusiones
 El uso de estructura de datos en archivos facilita el ingreso a los registros de manera mas eficiente y menos compleja que la forma comun.
