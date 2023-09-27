@@ -36,6 +36,10 @@ void Record::print_vals() {
     cout << "draft number: " << draft_number << '\n';
 }
 
+long Record::getPrimaryKey() const{
+    return playerid;
+}
+
 void Record::set_vals(long pid,char fn[],char ln[],
                       char pos[],char h[], int w,
                       char birth[],char cou[],

@@ -22,6 +22,7 @@ struct Record{
     int draft_number;
     Record();
     void print_vals();
+    long getPrimaryKey() const;
     void set_vals(long pid,char fn[],char ln[], char pos[],char h[], int w, char birth[],char cou[], char scho[],int dy,int dr,int dn);
     vector<long> get_prefix();
 };

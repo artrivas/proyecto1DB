@@ -768,6 +768,14 @@ Comparamos operaciones de inserción, búsqueda y eliminación en árboles AVL, 
 
 ### Sequential File
 
+*No se pudo integrar el Sequential File con el Parser, pero se ejecutó un test en la presentación
+(archivo testSeq.cpp) para corroborar que la implementación de dicha estructura funciona correctamente.
+* Archivos de la estructura:
+![image](https://github.com/artrivas/proyecto1DB/blob/main/graficos/files_sequential.png)
+
+* A continuación el resultado de la ejecución del test, el cual es correcto:
+![image](https://github.com/artrivas/proyecto1DB/blob/main/graficos/sequential_tests.png)
+
 
 ## 8. Referencias
 

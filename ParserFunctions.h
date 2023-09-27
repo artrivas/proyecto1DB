@@ -12,4 +12,6 @@
 #include <vector>
 #include "./records/Record.h"
 vector<Record> CsvToBin(const std::string & csvfile);
+void CsvToBinTwo(const std::string & csvfile,const std::string & binfile);
+
 #endif //UNTITLED_PARSERFUNCTIONS_H
