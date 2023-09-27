@@ -1,5 +1,9 @@
+//
+// Created by sadaadsa on 9/3/2023.
+//
 
-#pragma once
+#ifndef PROYECTO1_SEQ_H
+#define PROYECTO1_SEQ_H
 
 #include <iostream>
 #include <vector>
@@ -7,6 +11,8 @@
 #include <cstring>
 #include <utility>
 #include <algorithm>
+#include "../records/Record.h"
+
 
 #include "./../../utils/getPageSize.hpp"
 
@@ -15,18 +21,17 @@ using namespace std;
 const char DATA_FILE = 'D';
 const char AUX_FILE = 'A';
 
-// const int K = 70; 
-// const int K = getPageSize() / sizeof(RecordBlock); 
-const int K = 13; 
+const int K = 13;
 
 
 template <typename Record>
 class SequentialFile{
 private:
+
     string datafile_name;
     string auxfile_name;
     int numAuxEntries = 0;
-
+    int numDeleted = 0;
     struct RecordBlock {
         long next;
         char next_file;
@@ -36,6 +41,8 @@ private:
         RecordBlock(long _next, char _next_file, Record _record)
                 : next(_next), next_file(_next_file), record(std::move(_record)) {}
     };
+
+
 
     void rebuild() {
 
@@ -122,7 +129,7 @@ public:
     }
     Record r;
     while (infile.read((char*)&r, sizeof(Record))) {
-        cout<<"Insertando:"<<endl;
+//        cout<<"Insertando:"<<endl;
         this->add(r);
     }
 
@@ -168,7 +175,7 @@ public:
             pos_block = ((long)auxfile.tellg() - sizeof(RecordBlock)) / sizeof(RecordBlock);
         }
         cout << pos_block << current_file << " | ";
-        cout << block.record.get_key() << " | ";
+        cout << block.record.getPrimaryKey() << " | ";
         if (block.next != -1)
             cout << block.next / sizeof(RecordBlock) << block.next_file << endl;
         else
@@ -202,13 +209,13 @@ public:
 
         datafile.seekg(-sizeof(RecordBlock), ios::end);
         datafile.read((char*)&last, sizeof(RecordBlock));
-        if (last.record.get_key() < registro.get_key()) {
+        if (last.record.getPrimaryKey() < registro.getPrimaryKey()) {
             RecordBlock new_block{ last.next, last.next_file, registro};
 
             datafile.seekp(0, ios::end);
             datafile.write((char*)&new_block, sizeof(RecordBlock));
 
-            last.next = (long) datafile.tellp() - sizeof(RecordBlock);
+            last.next = (long)datafile.tellp() - sizeof(RecordBlock);
             last.next_file = DATA_FILE;
 
             datafile.seekp(-2 * sizeof(RecordBlock), ios::cur);
@@ -234,9 +241,10 @@ public:
             currentStream.seekg(current.next, ios::beg);
             currentStream.read((char*)&next, sizeof(RecordBlock));
 
-            if (next.record.get_key() == registro.get_key()) {
+            if (next.record.getPrimaryKey() == registro.getPrimaryKey()) {
                 return false;
-            } else if (next.record.get_key() > registro.get_key()) {
+
+            } else if (next.record.getPrimaryKey() > registro.getPrimaryKey()) {
                 break;
             } else {
                 current_pos = current.next;
@@ -280,7 +288,7 @@ public:
             fstream &activeFile = (current.next_file == DATA_FILE) ? datafile : auxfile;
             activeFile.seekg(current.next, ios::beg);
             activeFile.read((char*)&next, sizeof(RecordBlock));
-            if (next.record.get_key() == key) {
+            if (next.record.getPrimaryKey() == key) {
                 keyFound = true;
                 long temp_pos = next.next;
                 next.next = -2;
@@ -296,7 +304,7 @@ public:
                     auxfile.write((char*)&current, sizeof(RecordBlock));
                 }
                 break;
-            } else if (next.record.get_key() > key) {
+            } else if (next.record.getPrimaryKey() > key) {
                 break;
             }
 
@@ -309,6 +317,10 @@ public:
         auxfile.close();
 
         if (keyFound) {
+            numDeleted++;
+            if (this->deletedCount == K) {
+                rebuild();
+            }
             return true;
         }
         return false;
@@ -317,13 +329,10 @@ public:
     template<typename T>
     vector<Record> search(T key) {
         vector<Record> result;
-
         if (binarySearchInDatafile(key, result)) {
             return result;
         }
-
         linearSearchInAuxfile(key, result);
-
         return result;
     }
 
@@ -331,7 +340,7 @@ public:
     bool binarySearchInDatafile(T key, vector<Record>& result) {
         fstream datafile(datafile_name, ios::in | ios::binary);
         RecordBlock current;
-
+        datafile.seekg(0, ios::end);
         long long fileSize = datafile.tellg();
         int low = 0, high = (fileSize / sizeof(RecordBlock)) - 1;
 
@@ -339,14 +348,13 @@ public:
             int mid = (low + high) / 2;
             datafile.seekg(mid * sizeof(RecordBlock), ios::beg);
             datafile.read((char*)&current, sizeof(RecordBlock));
-
-            if (current.record.get_key() == key && current.next != -2) {
+            if (current.record.getPrimaryKey() == key && current.next != -2) {
                 result.push_back(current.record);
                 datafile.close();
                 return true;
             }
 
-            if (current.record.get_key() < key) {
+            if (current.record.getPrimaryKey() < key) {
                 low = mid + 1;
             } else {
                 high = mid - 1;
@@ -363,7 +371,7 @@ public:
         RecordBlock current;
 
         while (auxfile.read((char*)(&current), sizeof(RecordBlock))) {
-            if (current.record.get_key() == key && current.next != -2) {
+            if (current.record.getPrimaryKey() == key && current.next != -2) {
                 result.push_back(current.record);
             }
         }
@@ -382,7 +390,6 @@ public:
         fstream auxfile(auxfile_name, ios::in | ios::binary);
         searchAuxFile(auxfile, begin_key, end_key, result);
         auxfile.close();
-
         return result;
     }
 
@@ -395,10 +402,10 @@ public:
         while (low <= high) {
             int mid = (low + high) / 2;
             readBlock(datafile, mid, current);
-            if (current.record.get_key() < begin_key) {
+            if (current.record.getPrimaryKey() < begin_key) {
                 low = mid + 1;
             }
-            else if (current.record.get_key() > end_key) {
+            else if (current.record.getPrimaryKey() > end_key) {
                 high = mid - 1;
             }
             else {
@@ -419,8 +426,8 @@ public:
         RecordBlock current;
         int i = mid;
         readBlock(datafile, i, current);
-        while (current.record.get_key() <= end_key) {
-            if (current.next != -2 && current.record.get_key() >= begin_key) {
+        while (current.record.getPrimaryKey() <= end_key) {
+            if (current.next != -2 && current.record.getPrimaryKey() >= begin_key) {
                 res.push_back(current.record);
             }
             i++;
@@ -429,8 +436,8 @@ public:
 
         i = mid - 1;
         readBlock(datafile, i, current);
-        while (i >= 0 && current.record.get_key() >= begin_key) {
-            if (current.next != -2 && current.record.get_key() <= end_key) {
+        while (i >= 0 && current.record.getPrimaryKey() >= begin_key) {
+            if (current.next != -2 && current.record.getPrimaryKey() <= end_key) {
                 res.push_back(current.record);
             }
             i--;
@@ -446,10 +453,16 @@ public:
         RecordBlock current;
         auxfile.seekg(0, ios::beg);
         while (auxfile.read((char*)(&current), sizeof(RecordBlock))) {
-            if (current.record.get_key() >= begin_key && current.record.get_key() <= end_key && current.next != -2) {
+            if (current.record.getPrimaryKey() >= begin_key && current.record.getPrimaryKey() <= end_key && current.next != -2) {
                 res.push_back(current.record);
             }
         }
     }
 
 };
+
+
+
+
+
+#endif //PROYECTO1_SEQ_H
